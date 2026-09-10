@@ -6,11 +6,15 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import lux.uno.anima.platform.AndroidPlatform
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+
+        // Storage needs a Context once; everything downstream is Context-free.
+        AndroidPlatform.initialize(this)
 
         setContent {
             App()
