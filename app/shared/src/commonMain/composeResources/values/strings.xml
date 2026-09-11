@@ -65,28 +65,28 @@
     <string name="relative_tomorrow">tomorrow</string>
     <string name="relative_yesterday">yesterday</string>
     <plurals name="relative_in_days">
-        <item quantity="one">in %d day</item>
-        <item quantity="other">in %d days</item>
+        <item quantity="one">in %1$d day</item>
+        <item quantity="other">in %1$d days</item>
     </plurals>
     <plurals name="relative_in_weeks">
         <item quantity="one">in a week</item>
-        <item quantity="other">in %d weeks</item>
+        <item quantity="other">in %1$d weeks</item>
     </plurals>
     <plurals name="relative_in_months">
         <item quantity="one">in a month</item>
-        <item quantity="other">in %d months</item>
+        <item quantity="other">in %1$d months</item>
     </plurals>
     <plurals name="relative_days_ago">
-        <item quantity="one">%d day ago</item>
-        <item quantity="other">%d days ago</item>
+        <item quantity="one">%1$d day ago</item>
+        <item quantity="other">%1$d days ago</item>
     </plurals>
     <plurals name="relative_weeks_ago">
         <item quantity="one">a week ago</item>
-        <item quantity="other">%d weeks ago</item>
+        <item quantity="other">%1$d weeks ago</item>
     </plurals>
     <plurals name="relative_months_ago">
         <item quantity="one">a month ago</item>
-        <item quantity="other">%d months ago</item>
+        <item quantity="other">%1$d months ago</item>
     </plurals>
 
     <!-- Billing cycles -->
@@ -96,19 +96,19 @@
     <string name="billing_yearly">Yearly</string>
     <plurals name="billing_every_days">
         <item quantity="one">Every day</item>
-        <item quantity="other">Every %d days</item>
+        <item quantity="other">Every %1$d days</item>
     </plurals>
     <plurals name="billing_every_weeks">
         <item quantity="one">Every week</item>
-        <item quantity="other">Every %d weeks</item>
+        <item quantity="other">Every %1$d weeks</item>
     </plurals>
     <plurals name="billing_every_months">
         <item quantity="one">Every month</item>
-        <item quantity="other">Every %d months</item>
+        <item quantity="other">Every %1$d months</item>
     </plurals>
     <plurals name="billing_every_years">
         <item quantity="one">Every year</item>
-        <item quantity="other">Every %d years</item>
+        <item quantity="other">Every %1$d years</item>
     </plurals>
     <string name="billing_suffix_day">/day</string>
     <string name="billing_suffix_week">/wk</string>
@@ -167,12 +167,12 @@
     <string name="greeting_evening">Good evening</string>
     <string name="dashboard_per_month">per month</string>
     <plurals name="dashboard_trials_ending">
-        <item quantity="one">%d trial ending</item>
-        <item quantity="other">%d trials ending</item>
+        <item quantity="one">%1$d trial ending</item>
+        <item quantity="other">%1$d trials ending</item>
     </plurals>
     <plurals name="dashboard_subscription_count">
-        <item quantity="one">%d subscription</item>
-        <item quantity="other">%d subscriptions</item>
+        <item quantity="one">%1$d subscription</item>
+        <item quantity="other">%1$d subscriptions</item>
     </plurals>
     <!-- subscription count, next charge -->
     <string name="dashboard_glance_with_next">%1$s · %2$s</string>
@@ -198,8 +198,8 @@
     <string name="account_sign_out_title">Sign out?</string>
     <string name="account_sign_out_dialog_body">Your subscriptions stay on this device, and your email address is remembered so signing back in only asks for a password.</string>
     <plurals name="account_sign_out_pending">
-        <item quantity="one">%d change here hasn\'t reached the server yet. Removing it now would lose it.</item>
-        <item quantity="other">%d changes here haven\'t reached the server yet. Removing them now would lose them.</item>
+        <item quantity="one">%1$d change here hasn\'t reached the server yet. Removing it now would lose it.</item>
+        <item quantity="other">%1$d changes here haven\'t reached the server yet. Removing them now would lose them.</item>
     </plurals>
     <string name="account_sign_out_keep_data">Sign out, keep data</string>
     <string name="account_remove_data">Remove data</string>
@@ -215,8 +215,8 @@
     <string name="sync_headline_signed_out">Signed out</string>
     <string name="sync_headline_up_to_date">Up to date</string>
     <plurals name="sync_headline_pending">
-        <item quantity="one">%d waiting to go up</item>
-        <item quantity="other">%d waiting to go up</item>
+        <item quantity="one">%1$d waiting to go up</item>
+        <item quantity="other">%1$d waiting to go up</item>
     </plurals>
     <string name="sync_detail_syncing">Sending and collecting changes.</string>
     <string name="sync_detail_failed">The server was reached and refused the exchange. Nothing here has been lost.</string>
@@ -276,8 +276,8 @@
     <string name="finance_section_paused">Paused</string>
     <string name="finance_monthly_outflow">MONTHLY OUTFLOW</string>
     <plurals name="finance_active_count">
-        <item quantity="one">%d active subscription</item>
-        <item quantity="other">%d active subscriptions</item>
+        <item quantity="one">%1$d active subscription</item>
+        <item quantity="other">%1$d active subscriptions</item>
     </plurals>
     <!-- yearly total, active subscription count -->
     <string name="finance_total_line">%1$s a year · %2$s</string>
@@ -328,8 +328,8 @@
     <string name="payment_method_delete_title">Delete %1$s?</string>
     <string name="payment_method_delete_unused">Nothing is paying through it.</string>
     <plurals name="payment_method_delete_used">
-        <item quantity="one">%d subscription will be left without a payment method.</item>
-        <item quantity="other">%d subscriptions will be left without a payment method.</item>
+        <item quantity="one">%1$d subscription will be left without a payment method.</item>
+        <item quantity="other">%1$d subscriptions will be left without a payment method.</item>
     </plurals>
     <string name="payment_method_new">New payment method</string>
     <string name="payment_method_edit">Edit %1$s</string>
@@ -354,15 +354,15 @@
     <string name="categories_empty_action">Add one</string>
     <string name="categories_nothing_in_it">Nothing in it yet</string>
     <plurals name="categories_used">
-        <item quantity="one">%d subscription</item>
-        <item quantity="other">%d subscriptions</item>
+        <item quantity="one">%1$d subscription</item>
+        <item quantity="other">%1$d subscriptions</item>
     </plurals>
     <string name="category_delete_description">Delete %1$s</string>
     <string name="category_delete_title">Delete %1$s?</string>
     <string name="category_delete_unused">Nothing is filed under it.</string>
     <plurals name="category_delete_used">
-        <item quantity="one">%d subscription will become uncategorised. Nothing else about it changes.</item>
-        <item quantity="other">%d subscriptions will become uncategorised. Nothing else about them changes.</item>
+        <item quantity="one">%1$d subscription will become uncategorised. Nothing else about it changes.</item>
+        <item quantity="other">%1$d subscriptions will become uncategorised. Nothing else about them changes.</item>
     </plurals>
     <string name="category_edit">Edit %1$s</string>
     <string name="category_name">Name</string>
@@ -435,8 +435,8 @@
     <string name="editor_trial_ends">Trial ends</string>
     <string name="editor_remind_me">REMIND ME</string>
     <plurals name="editor_days_before">
-        <item quantity="one">%d day before</item>
-        <item quantity="other">%d days before</item>
+        <item quantity="one">%1$d day before</item>
+        <item quantity="other">%1$d days before</item>
     </plurals>
     <string name="editor_paid_with">Paid with</string>
     <string name="editor_no_payment_methods">No payment methods yet.</string>

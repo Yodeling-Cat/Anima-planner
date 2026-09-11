@@ -52,34 +52,34 @@
     <string name="relative_tomorrow">zajtra</string>
     <string name="relative_yesterday">včera</string>
     <plurals name="relative_in_days">
-        <item quantity="one">o %d deň</item>
-        <item quantity="few">o %d dni</item>
-        <item quantity="other">o %d dní</item>
+        <item quantity="one">o %1$d deň</item>
+        <item quantity="few">o %1$d dni</item>
+        <item quantity="other">o %1$d dní</item>
     </plurals>
     <plurals name="relative_in_weeks">
         <item quantity="one">o týždeň</item>
-        <item quantity="few">o %d týždne</item>
-        <item quantity="other">o %d týždňov</item>
+        <item quantity="few">o %1$d týždne</item>
+        <item quantity="other">o %1$d týždňov</item>
     </plurals>
     <plurals name="relative_in_months">
         <item quantity="one">o mesiac</item>
-        <item quantity="few">o %d mesiace</item>
-        <item quantity="other">o %d mesiacov</item>
+        <item quantity="few">o %1$d mesiace</item>
+        <item quantity="other">o %1$d mesiacov</item>
     </plurals>
     <plurals name="relative_days_ago">
-        <item quantity="one">pred %d dňom</item>
-        <item quantity="few">pred %d dňami</item>
-        <item quantity="other">pred %d dňami</item>
+        <item quantity="one">pred %1$d dňom</item>
+        <item quantity="few">pred %1$d dňami</item>
+        <item quantity="other">pred %1$d dňami</item>
     </plurals>
     <plurals name="relative_weeks_ago">
         <item quantity="one">pred týždňom</item>
-        <item quantity="few">pred %d týždňami</item>
-        <item quantity="other">pred %d týždňami</item>
+        <item quantity="few">pred %1$d týždňami</item>
+        <item quantity="other">pred %1$d týždňami</item>
     </plurals>
     <plurals name="relative_months_ago">
         <item quantity="one">pred mesiacom</item>
-        <item quantity="few">pred %d mesiacmi</item>
-        <item quantity="other">pred %d mesiacmi</item>
+        <item quantity="few">pred %1$d mesiacmi</item>
+        <item quantity="other">pred %1$d mesiacmi</item>
     </plurals>
 
     <string name="billing_daily">Denne</string>
@@ -88,23 +88,23 @@
     <string name="billing_yearly">Ročne</string>
     <plurals name="billing_every_days">
         <item quantity="one">Každý deň</item>
-        <item quantity="few">Každé %d dni</item>
-        <item quantity="other">Každých %d dní</item>
+        <item quantity="few">Každé %1$d dni</item>
+        <item quantity="other">Každých %1$d dní</item>
     </plurals>
     <plurals name="billing_every_weeks">
         <item quantity="one">Každý týždeň</item>
-        <item quantity="few">Každé %d týždne</item>
-        <item quantity="other">Každých %d týždňov</item>
+        <item quantity="few">Každé %1$d týždne</item>
+        <item quantity="other">Každých %1$d týždňov</item>
     </plurals>
     <plurals name="billing_every_months">
         <item quantity="one">Každý mesiac</item>
-        <item quantity="few">Každé %d mesiace</item>
-        <item quantity="other">Každých %d mesiacov</item>
+        <item quantity="few">Každé %1$d mesiace</item>
+        <item quantity="other">Každých %1$d mesiacov</item>
     </plurals>
     <plurals name="billing_every_years">
         <item quantity="one">Každý rok</item>
-        <item quantity="few">Každé %d roky</item>
-        <item quantity="other">Každých %d rokov</item>
+        <item quantity="few">Každé %1$d roky</item>
+        <item quantity="other">Každých %1$d rokov</item>
     </plurals>
     <string name="billing_suffix_day">/deň</string>
     <string name="billing_suffix_week">/týž</string>
@@ -158,14 +158,14 @@
     <string name="greeting_evening">Dobrý večer</string>
     <string name="dashboard_per_month">mesačne</string>
     <plurals name="dashboard_trials_ending">
-        <item quantity="one">%d skúšobná verzia sa končí</item>
-        <item quantity="few">%d skúšobné verzie sa končia</item>
-        <item quantity="other">%d skúšobných verzií sa končí</item>
+        <item quantity="one">%1$d skúšobná verzia sa končí</item>
+        <item quantity="few">%1$d skúšobné verzie sa končia</item>
+        <item quantity="other">%1$d skúšobných verzií sa končí</item>
     </plurals>
     <plurals name="dashboard_subscription_count">
-        <item quantity="one">%d predplatné</item>
-        <item quantity="few">%d predplatné</item>
-        <item quantity="other">%d predplatných</item>
+        <item quantity="one">%1$d predplatné</item>
+        <item quantity="few">%1$d predplatné</item>
+        <item quantity="other">%1$d predplatných</item>
     </plurals>
     <string name="dashboard_glance_with_next">%1$s · %2$s</string>
     <string name="dashboard_next_charge">%1$s %2$s</string>
@@ -188,9 +188,9 @@
     <string name="account_sign_out_title">Odhlásiť sa?</string>
     <string name="account_sign_out_dialog_body">Vaše predplatné zostane v tomto zariadení a e-mailová adresa sa zapamätá, takže pri opätovnom prihlásení stačí zadať heslo.</string>
     <plurals name="account_sign_out_pending">
-        <item quantity="one">%d zmena sa ešte nedostala na server. Ak ju teraz odstránite, prídete o ňu.</item>
-        <item quantity="few">%d zmeny sa ešte nedostali na server. Ak ich teraz odstránite, prídete o ne.</item>
-        <item quantity="other">%d zmien sa ešte nedostalo na server. Ak ich teraz odstránite, prídete o ne.</item>
+        <item quantity="one">%1$d zmena sa ešte nedostala na server. Ak ju teraz odstránite, prídete o ňu.</item>
+        <item quantity="few">%1$d zmeny sa ešte nedostali na server. Ak ich teraz odstránite, prídete o ne.</item>
+        <item quantity="other">%1$d zmien sa ešte nedostalo na server. Ak ich teraz odstránite, prídete o ne.</item>
     </plurals>
     <string name="account_sign_out_keep_data">Odhlásiť a ponechať dáta</string>
     <string name="account_remove_data">Odstrániť dáta</string>
@@ -205,9 +205,9 @@
     <string name="sync_headline_signed_out">Odhlásené</string>
     <string name="sync_headline_up_to_date">Všetko je aktuálne</string>
     <plurals name="sync_headline_pending">
-        <item quantity="one">%d čaká na odoslanie</item>
-        <item quantity="few">%d čakajú na odoslanie</item>
-        <item quantity="other">%d čaká na odoslanie</item>
+        <item quantity="one">%1$d čaká na odoslanie</item>
+        <item quantity="few">%1$d čakajú na odoslanie</item>
+        <item quantity="other">%1$d čaká na odoslanie</item>
     </plurals>
     <string name="sync_detail_syncing">Odosielam a zbieram zmeny.</string>
     <string name="sync_detail_failed">Server odpovedal a výmenu odmietol. Nič sa tu nestratilo.</string>
@@ -264,9 +264,9 @@
     <string name="finance_section_paused">Pozastavené</string>
     <string name="finance_monthly_outflow">MESAČNÝ ODLIV</string>
     <plurals name="finance_active_count">
-        <item quantity="one">%d aktívne predplatné</item>
-        <item quantity="few">%d aktívne predplatné</item>
-        <item quantity="other">%d aktívnych predplatných</item>
+        <item quantity="one">%1$d aktívne predplatné</item>
+        <item quantity="few">%1$d aktívne predplatné</item>
+        <item quantity="other">%1$d aktívnych predplatných</item>
     </plurals>
     <string name="finance_total_line">%1$s ročne · %2$s</string>
     <string name="finance_monthly_pill">%1$s/mes</string>
@@ -308,9 +308,9 @@
     <string name="payment_method_delete_title">Odstrániť %1$s?</string>
     <string name="payment_method_delete_unused">Nič cez ňu neplatí.</string>
     <plurals name="payment_method_delete_used">
-        <item quantity="one">%d predplatné zostane bez platobnej metódy.</item>
-        <item quantity="few">%d predplatné zostanú bez platobnej metódy.</item>
-        <item quantity="other">%d predplatných zostane bez platobnej metódy.</item>
+        <item quantity="one">%1$d predplatné zostane bez platobnej metódy.</item>
+        <item quantity="few">%1$d predplatné zostanú bez platobnej metódy.</item>
+        <item quantity="other">%1$d predplatných zostane bez platobnej metódy.</item>
     </plurals>
     <string name="payment_method_new">Nová platobná metóda</string>
     <string name="payment_method_edit">Upraviť %1$s</string>
@@ -334,17 +334,17 @@
     <string name="categories_empty_action">Pridať jednu</string>
     <string name="categories_nothing_in_it">Zatiaľ v nej nič nie je</string>
     <plurals name="categories_used">
-        <item quantity="one">%d predplatné</item>
-        <item quantity="few">%d predplatné</item>
-        <item quantity="other">%d predplatných</item>
+        <item quantity="one">%1$d predplatné</item>
+        <item quantity="few">%1$d predplatné</item>
+        <item quantity="other">%1$d predplatných</item>
     </plurals>
     <string name="category_delete_description">Odstrániť %1$s</string>
     <string name="category_delete_title">Odstrániť %1$s?</string>
     <string name="category_delete_unused">Nič pod ňou nie je zaradené.</string>
     <plurals name="category_delete_used">
-        <item quantity="one">%d predplatné sa stane nezaradeným. Nič iné sa na ňom nemení.</item>
-        <item quantity="few">%d predplatné sa stanú nezaradenými. Nič iné sa na nich nemení.</item>
-        <item quantity="other">%d predplatných sa stane nezaradenými. Nič iné sa na nich nemení.</item>
+        <item quantity="one">%1$d predplatné sa stane nezaradeným. Nič iné sa na ňom nemení.</item>
+        <item quantity="few">%1$d predplatné sa stanú nezaradenými. Nič iné sa na nich nemení.</item>
+        <item quantity="other">%1$d predplatných sa stane nezaradenými. Nič iné sa na nich nemení.</item>
     </plurals>
     <string name="category_edit">Upraviť %1$s</string>
     <string name="category_name">Názov</string>
@@ -411,9 +411,9 @@
     <string name="editor_trial_ends">Skúšobná verzia končí</string>
     <string name="editor_remind_me">PRIPOMENÚŤ</string>
     <plurals name="editor_days_before">
-        <item quantity="one">%d deň predtým</item>
-        <item quantity="few">%d dni predtým</item>
-        <item quantity="other">%d dní predtým</item>
+        <item quantity="one">%1$d deň predtým</item>
+        <item quantity="few">%1$d dni predtým</item>
+        <item quantity="other">%1$d dní predtým</item>
     </plurals>
     <string name="editor_paid_with">Platené cez</string>
     <string name="editor_no_payment_methods">Zatiaľ žiadne platobné metódy.</string>
