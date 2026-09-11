@@ -151,6 +151,9 @@
     <string name="coming_soon_not_built">EŠTE NEPOSTAVENÉ</string>
 
     <string name="dashboard_eyebrow">ANIMA</string>
+    <!-- The permanent rail, where the window is wide enough for one -->
+    <string name="nav_home">Domov</string>
+
     <string name="dashboard_account">Účet</string>
     <string name="greeting_still_up">Ešte hore</string>
     <string name="greeting_morning">Dobré ráno</string>
@@ -253,6 +256,9 @@
     <string name="finance_categories">Kategórie</string>
     <string name="finance_payment_methods">Platobné metódy</string>
     <string name="finance_add">Pridať</string>
+    <!-- The detail pane before anything has been opened in it -->
+    <string name="finance_select_title">Nič nie je otvorené</string>
+    <string name="finance_select_body">Vyberte predplatné zo zoznamu a uvidíte, koľko stojí a kedy sa obnovuje.</string>
     <string name="finance_empty_title">Zatiaľ nič nesledujete</string>
     <string name="finance_empty_body">Pridajte veci, ktoré vám ticho účtujú každý mesiac, a táto obrazovka vám začne hovoriť, kam peniaze idú.</string>
     <string name="finance_empty_action">Pridať predplatné</string>

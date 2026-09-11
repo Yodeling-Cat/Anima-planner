@@ -57,7 +57,8 @@ fun AccountScreen(
     onRegister: (email: String, password: String) -> Unit,
     onSignOut: (alsoDeleteLocalData: Boolean) -> Unit,
     onSyncNow: () -> Unit,
-    onBack: () -> Unit,
+    /** Null where a rail is showing, which is the way back to the dashboard instead. */
+    onBack: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     ScreenSurface(modifier) { contentModifier ->

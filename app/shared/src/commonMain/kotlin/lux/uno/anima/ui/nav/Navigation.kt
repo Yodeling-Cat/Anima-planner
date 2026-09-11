@@ -83,6 +83,24 @@ class Navigator(initial: Screen = Screen.Dashboard) {
         stack.add(screen)
     }
 
+    /**
+     * Goes to a section from the rail: the stack becomes the root screen and [screen] above it.
+     *
+     * Not [go], which would stack sections on top of each other, and not [popTo], which
+     * resets the stack to [screen] alone when it is not on it — the rail is reachable from
+     * every depth, and either way Back would come to mean "the thing before this, in a
+     * section you have already left". Rooted rather than replaced so back and Escape still
+     * walk home from anywhere.
+     */
+    fun switchTo(screen: Screen) {
+        val root = stack.first()
+        val target = if (screen == root) listOf(root) else listOf(root, screen)
+        if (stack.toList() == target) return
+        lastMove = if (target.size < stack.size) Move.Backward else Move.Forward
+        stack.clear()
+        stack.addAll(target)
+    }
+
     fun back(): Boolean {
         if (!canGoBack) return false
         lastMove = Move.Backward
@@ -102,6 +120,52 @@ class Navigator(initial: Screen = Screen.Dashboard) {
         }
     }
 }
+
+/**
+ * The life area a screen belongs to, so the rail can mark where you are from anywhere
+ * inside a section rather than only on the section's own screen.
+ *
+ * Null means the screen is not inside an area at all — the dashboard and the account.
+ */
+val Screen.area: LifeArea?
+    get() = when (this) {
+        Screen.Finance,
+        Screen.PaymentMethods,
+        Screen.Categories,
+        is Screen.SubscriptionDetail,
+        is Screen.SubscriptionEditor,
+        -> LifeArea.FINANCE
+
+        is Screen.ComingSoon -> this.area
+        Screen.Dashboard, Screen.Account -> null
+    }
+
+/**
+ * The screen that stays in the list pane while this one fills the detail pane, where there
+ * is room for both. Null means the screen wants the whole width.
+ *
+ * Derived from the destination rather than from how deep it sits, for the same reason
+ * [Navigator.lastMove] is recorded rather than computed: a depth table is one more thing to
+ * remember to update, and forgetting shows up as a layout that quietly stops splitting.
+ */
+val Screen.listPane: Screen?
+    get() = when (this) {
+        Screen.PaymentMethods,
+        Screen.Categories,
+        is Screen.SubscriptionDetail,
+        is Screen.SubscriptionEditor,
+        -> Screen.Finance
+
+        else -> null
+    }
+
+/** The subscription a screen is about, so a list beside it can mark the matching row. */
+val Screen.subscriptionId: String?
+    get() = when (this) {
+        is Screen.SubscriptionDetail -> id
+        is Screen.SubscriptionEditor -> id
+        else -> null
+    }
 
 private val screenFormat = Json { ignoreUnknownKeys = true }
 

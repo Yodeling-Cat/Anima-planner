@@ -160,6 +160,9 @@
 
     <!-- Dashboard -->
     <string name="dashboard_eyebrow">ANIMA</string>
+    <!-- The permanent rail, where the window is wide enough for one -->
+    <string name="nav_home">Home</string>
+
     <string name="dashboard_account">Account</string>
     <string name="greeting_still_up">Still up</string>
     <string name="greeting_morning">Good morning</string>
@@ -265,6 +268,9 @@
     <string name="finance_categories">Categories</string>
     <string name="finance_payment_methods">Payment methods</string>
     <string name="finance_add">Add</string>
+    <!-- The detail pane before anything has been opened in it -->
+    <string name="finance_select_title">Nothing open</string>
+    <string name="finance_select_body">Choose a subscription from the list to see what it costs and when it renews.</string>
     <string name="finance_empty_title">Nothing tracked yet</string>
     <string name="finance_empty_body">Add the things that quietly bill you every month, and this screen starts telling you where the money goes.</string>
     <string name="finance_empty_action">Add a subscription</string>

@@ -10,36 +10,44 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.input.key.isCtrlPressed
-import androidx.compose.ui.input.key.isShiftPressed
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -47,10 +55,6 @@ import kotlinx.coroutines.launch
 import lux.uno.anima.dev.AppEnvironment
 import lux.uno.anima.dev.EnvironmentStore
 import lux.uno.anima.dev.createShakeDetector
-import lux.uno.anima.resources.*
-import lux.uno.anima.ui.dev.DeveloperScreen
-import lux.uno.anima.ui.dev.EnvironmentBanner
-import lux.uno.anima.ui.dev.showsBanner
 import lux.uno.anima.finance.FinanceRepository
 import lux.uno.anima.finance.model.buildOverview
 import lux.uno.anima.finance.model.cardsNeedingAttention
@@ -61,30 +65,38 @@ import lux.uno.anima.finance.reminders.ReminderCoordinator
 import lux.uno.anima.finance.reminders.createReminderNotifier
 import lux.uno.anima.finance.store.IconStore
 import lux.uno.anima.finance.store.JsonFileFinanceStore
+import lux.uno.anima.finance.sync.recordsToPush
+import lux.uno.anima.finance.today
+import lux.uno.anima.platform.createSecretStore
+import lux.uno.anima.platform.newId
+import lux.uno.anima.resources.*
+import lux.uno.anima.sync.Account
+import lux.uno.anima.sync.BlobSync
 import lux.uno.anima.sync.Hlc
 import lux.uno.anima.sync.HybridClock
-import lux.uno.anima.platform.createSecretStore
 import lux.uno.anima.sync.JsonFileSyncStateStore
 import lux.uno.anima.sync.KtorSyncApi
 import lux.uno.anima.sync.KtorSyncEvents
 import lux.uno.anima.sync.LiveSync
-import lux.uno.anima.finance.sync.recordsToPush
-import lux.uno.anima.platform.newId
-import lux.uno.anima.sync.Account
-import lux.uno.anima.sync.BlobSync
 import lux.uno.anima.sync.SyncEngine
+import lux.uno.anima.sync.SyncState
+import lux.uno.anima.sync.SyncStatus
+import lux.uno.anima.sync.animaHttpClient
+import lux.uno.anima.sync.loadOrCreate
 import lux.uno.anima.ui.account.AccountScreen
 import lux.uno.anima.ui.account.AccountState
 import lux.uno.anima.ui.account.message
-import lux.uno.anima.sync.animaHttpClient
-import lux.uno.anima.sync.SyncState
-import lux.uno.anima.sync.SyncStatus
-import lux.uno.anima.sync.loadOrCreate
-import lux.uno.anima.finance.today
+import lux.uno.anima.ui.components.ContentMaxWidth
+import lux.uno.anima.ui.components.EmptyState
+import lux.uno.anima.ui.components.ScreenSurface
+import lux.uno.anima.ui.components.VerticalHairline
 import lux.uno.anima.ui.dashboard.ComingSoonScreen
 import lux.uno.anima.ui.dashboard.DashboardScreen
 import lux.uno.anima.ui.dashboard.FinanceGlance
 import lux.uno.anima.ui.dashboard.LifeArea
+import lux.uno.anima.ui.dev.DeveloperScreen
+import lux.uno.anima.ui.dev.EnvironmentBanner
+import lux.uno.anima.ui.dev.showsBanner
 import lux.uno.anima.ui.finance.CategoriesScreen
 import lux.uno.anima.ui.finance.FinanceHomeScreen
 import lux.uno.anima.ui.finance.PaymentMethodsScreen
@@ -92,11 +104,16 @@ import lux.uno.anima.ui.finance.SubscriptionDetailScreen
 import lux.uno.anima.ui.finance.SubscriptionEditorScreen
 import lux.uno.anima.ui.icons.IconImages
 import lux.uno.anima.ui.icons.LocalIconImages
+import lux.uno.anima.ui.nav.AnimaNavRail
 import lux.uno.anima.ui.nav.Move
+import lux.uno.anima.ui.nav.Navigator
 import lux.uno.anima.ui.nav.Screen
 import lux.uno.anima.ui.nav.SystemBackHandler
+import lux.uno.anima.ui.nav.WindowClass
+import lux.uno.anima.ui.nav.listPane
 import lux.uno.anima.ui.nav.rememberNavigator
 import lux.uno.anima.ui.nav.stateKey
+import lux.uno.anima.ui.nav.subscriptionId
 import lux.uno.anima.ui.text.ResourceReminderStrings
 import lux.uno.anima.ui.text.relativeDayLabel
 import lux.uno.anima.ui.text.seededCategories
@@ -350,7 +367,7 @@ private fun Anima(
     }
 
     CompositionLocalProvider(LocalIconImages provides iconImages) {
-        Box(
+        BoxWithConstraints(
             Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
@@ -371,13 +388,172 @@ private fun Anima(
                     }
                 },
         ) {
-            if (!loaded) return@CompositionLocalProvider
+            if (!loaded) return@BoxWithConstraints
+
+            // One place decides how much room there is, and the layout below reads it.
+            // Measured from the window rather than asked of the platform: a desktop window
+            // dragged narrow is a phone-shaped space and is laid out like one.
+            val windowClass = WindowClass.of(maxWidth)
+
+            // Where the rail is showing it is the way back to the dashboard, so the screens
+            // it reaches drop their own arrow rather than offering a second one.
+            val sectionBack: (() -> Unit)? =
+                if (windowClass.showsRail) null else ({ navigator.back(); Unit })
+
+            // A lambda rather than a function because it closes over the whole data layer:
+            // as a top-level composable this would be thirty parameters threaded through one
+            // call site. Held in one place because the panes below both draw screens with it,
+            // and two copies of this `when` is how two panes start disagreeing about what a
+            // screen is.
+            val render: @Composable (Screen) -> Unit = { screen ->
+                screenState.SaveableStateProvider(screen.stateKey) {
+                    when (screen) {
+                        Screen.Dashboard -> DashboardScreen(
+                            glance = glance,
+                            onOpenAccount = { navigator.go(Screen.Account) },
+                            syncDot = syncDotFor(environment, signedIn, syncStatus, pendingCount),
+                            onOpen = { area ->
+                                navigator.go(
+                                    if (area == LifeArea.FINANCE) Screen.Finance else Screen.ComingSoon(area),
+                                )
+                            },
+                        )
+
+                        Screen.Finance -> FinanceHomeScreen(
+                            data = data,
+                            today = today,
+                            onBack = sectionBack,
+                            selectedId = navigator.current.subscriptionId,
+                            onOpenSubscription = { navigator.go(Screen.SubscriptionDetail(it)) },
+                            onAddSubscription = { navigator.go(Screen.SubscriptionEditor()) },
+                            onOpenPaymentMethods = { navigator.go(Screen.PaymentMethods) },
+                            onOpenCategories = { navigator.go(Screen.Categories) },
+                        )
+
+                        is Screen.SubscriptionDetail -> {
+                            val subscription = data.subscriptions.firstOrNull { it.id == screen.id }
+                            if (subscription == null) {
+                                // The record was deleted from underneath this screen.
+                                LaunchedEffect(screen.id) { navigator.popTo(Screen.Finance) }
+                            } else {
+                                SubscriptionDetailScreen(
+                                    subscription = subscription,
+                                    data = data,
+                                    today = today,
+                                    onBack = { navigator.back() },
+                                    onEdit = { navigator.go(Screen.SubscriptionEditor(subscription.id)) },
+                                    onDelete = {
+                                        repository.deleteSubscription(subscription.id)
+                                        navigator.popTo(Screen.Finance)
+                                    },
+                                    onTogglePaused = {
+                                        repository.setSubscriptionActive(subscription.id, !subscription.isActive)
+                                    },
+                                    onEndTrial = { repository.endTrial(subscription.id) },
+                                    onRecordPrice = { price, date, note ->
+                                        repository.recordPriceChange(subscription.id, price, date, note)
+                                    },
+                                    onDeletePricePoint = { date ->
+                                        repository.deletePricePoint(subscription.id, date)
+                                    },
+                                )
+                            }
+                        }
+
+                        is Screen.SubscriptionEditor -> SubscriptionEditorScreen(
+                            existing = screen.id?.let { id -> data.subscriptions.firstOrNull { it.id == id } },
+                            data = data,
+                            today = today,
+                            onBack = { navigator.back() },
+                            onSave = { subscription ->
+                                repository.upsertSubscription(subscription)
+                                // Editing came from the detail screen, so returning to it is enough.
+                                if (screen.id != null) navigator.back()
+                                else navigator.replace(Screen.SubscriptionDetail(subscription.id))
+                            },
+                            onManagePaymentMethods = { navigator.go(Screen.PaymentMethods) },
+                            onManageCategories = { navigator.go(Screen.Categories) },
+                            onCreateCategory = { repository.upsertCategory(it) },
+                        )
+
+                        Screen.PaymentMethods -> PaymentMethodsScreen(
+                            data = data,
+                            today = today,
+                            notificationsEnabled = notificationsEnabled,
+                            onBack = { navigator.back() },
+                            onSave = { repository.upsertPaymentMethod(it) },
+                            onDelete = { repository.deletePaymentMethod(it) },
+                        )
+
+                        Screen.Categories -> CategoriesScreen(
+                            data = data,
+                            onBack = { navigator.back() },
+                            onSave = { repository.upsertCategory(it) },
+                            onDelete = { repository.deleteCategory(it) },
+                        )
+
+                        Screen.Account -> AccountScreen(
+                            state = AccountState(
+                                environment = environment,
+                                signedIn = signedIn,
+                                email = accountEmail,
+                                syncStatus = syncStatus,
+                                pendingCount = pendingCount,
+                                busy = accountBusy,
+                                message = accountMessage,
+                            ),
+                            onSignIn = { email, password ->
+                                scope.launch {
+                                    accountBusy = true
+                                    accountMessage = account.signIn(email, password).message()
+                                    accountBusy = false
+                                    // Signing in is the moment there is finally something to talk to.
+                                    if (accountMessage == null) engine.syncNow()
+                                }
+                            },
+                            onRegister = { email, password ->
+                                scope.launch {
+                                    accountBusy = true
+                                    // The join password belongs to the server, not the
+                                    // person, so it comes from the environment rather than
+                                    // from anything typed on this screen.
+                                    accountMessage = account
+                                        .register(email, password, environment.joinPassword)
+                                        .message()
+                                    accountBusy = false
+                                    if (accountMessage == null) engine.syncNow()
+                                }
+                            },
+                            onSignOut = { alsoDeleteLocalData ->
+                                scope.launch {
+                                    account.signOut()
+                                    accountMessage = null
+                                    if (alsoDeleteLocalData) {
+                                        repository.resetLocalData()
+                                        // A new node id too: after a wipe this is a new device as far as
+                                        // the server is concerned, and the old push mark would describe
+                                        // records that are no longer here.
+                                        syncStateStore.save(SyncState(nodeId = newId("node")))
+                                    }
+                                    navigator.back()
+                                }
+                            },
+                            onSyncNow = { scope.launch { engine.syncNow() } },
+                            onBack = sectionBack,
+                        )
+
+                        is Screen.ComingSoon -> ComingSoonScreen(
+                            area = screen.area,
+                            onBack = sectionBack,
+                        )
+                    }
+                }
+            }
 
             Column(Modifier.fillMaxSize()) {
                 EnvironmentBanner(environment, onOpen = { showDeveloper = true })
 
-                AnimatedContent(
-                    targetState = navigator.current,
+                Row(
                     modifier = Modifier
                         .weight(1f)
                         // Every screen pads itself for the status bar. When the banner is
@@ -392,166 +568,76 @@ private fun Anima(
                                 Modifier
                             },
                         ),
-                    transitionSpec = {
-                        val forward = navigator.lastMove == Move.Forward
-                        val transform = if (forward) {
-                            (fadeIn(tween(200)) + slideInHorizontally(tween(240)) { it / 14 })
-                                .togetherWith(fadeOut(tween(140)))
-                        } else {
-                            // The same movement run backwards in time: the screen being left
-                            // slides out the way it came in, and the one underneath fades up
-                            // where it already sits rather than arriving from anywhere.
-                            fadeIn(tween(140))
-                                .togetherWith(
-                                    fadeOut(tween(200)) +
-                                        slideOutHorizontally(tween(240)) { it / 14 },
+                ) {
+                    if (windowClass.showsRail) {
+                        AnimaNavRail(
+                            current = navigator.current,
+                            onHome = { navigator.switchTo(Screen.Dashboard) },
+                            onOpenArea = { area ->
+                                navigator.switchTo(
+                                    if (area == LifeArea.FINANCE) {
+                                        Screen.Finance
+                                    } else {
+                                        Screen.ComingSoon(area)
+                                    },
                                 )
-                        }
-                        // Going forward the new screen arrives on top; going back the old one
-                        // has to stay on top, because it is the thing moving out of the way.
-                        transform.apply { targetContentZIndex = if (forward) 1f else -1f }
-                    },
-                    label = "screen",
-                ) { screen ->
-                    screenState.SaveableStateProvider(screen.stateKey) {
-                        when (screen) {
-                            Screen.Dashboard -> DashboardScreen(
-                                glance = glance,
-                                onOpenAccount = { navigator.go(Screen.Account) },
-                                syncDot = syncDotFor(environment, signedIn, syncStatus, pendingCount),
-                                onOpen = { area ->
-                                    navigator.go(
-                                        if (area == LifeArea.FINANCE) Screen.Finance else Screen.ComingSoon(area),
+                            },
+                            onOpenAccount = { navigator.switchTo(Screen.Account) },
+                            syncDot = syncDotFor(environment, signedIn, syncStatus, pendingCount),
+                        )
+                    }
+
+                    // The section list that stays put while the pane beside it shows whatever
+                    // the list opened. Finance sitting next to the placeholder is the resting
+                    // state, which is why it counts as a list pane while it is the current
+                    // screen rather than only while something is open on top of it.
+                    val listPane = when {
+                        !windowClass.showsTwoPanes -> null
+                        navigator.current == Screen.Finance -> Screen.Finance
+                        else -> navigator.current.listPane
+                    }
+
+                    Box(
+                        Modifier
+                            .weight(1f)
+                            // The rail has taken the left inset; left here it would pad the
+                            // content away from an edge the rail is already covering.
+                            .then(
+                                if (windowClass.showsRail) {
+                                    Modifier.consumeWindowInsets(
+                                        WindowInsets.safeDrawing.only(WindowInsetsSides.Start),
                                     )
-                                },
-                            )
-
-                            Screen.Finance -> FinanceHomeScreen(
-                                data = data,
-                                today = today,
-                                onBack = { navigator.back() },
-                                onOpenSubscription = { navigator.go(Screen.SubscriptionDetail(it)) },
-                                onAddSubscription = { navigator.go(Screen.SubscriptionEditor()) },
-                                onOpenPaymentMethods = { navigator.go(Screen.PaymentMethods) },
-                                onOpenCategories = { navigator.go(Screen.Categories) },
-                            )
-
-                            is Screen.SubscriptionDetail -> {
-                                val subscription = data.subscriptions.firstOrNull { it.id == screen.id }
-                                if (subscription == null) {
-                                    // The record was deleted from underneath this screen.
-                                    LaunchedEffect(screen.id) { navigator.popTo(Screen.Finance) }
                                 } else {
-                                    SubscriptionDetailScreen(
-                                        subscription = subscription,
-                                        data = data,
-                                        today = today,
-                                        onBack = { navigator.back() },
-                                        onEdit = { navigator.go(Screen.SubscriptionEditor(subscription.id)) },
-                                        onDelete = {
-                                            repository.deleteSubscription(subscription.id)
-                                            navigator.popTo(Screen.Finance)
-                                        },
-                                        onTogglePaused = {
-                                            repository.setSubscriptionActive(subscription.id, !subscription.isActive)
-                                        },
-                                        onEndTrial = { repository.endTrial(subscription.id) },
-                                        onRecordPrice = { price, date, note ->
-                                            repository.recordPriceChange(subscription.id, price, date, note)
-                                        },
-                                        onDeletePricePoint = { date ->
-                                            repository.deletePricePoint(subscription.id, date)
-                                        },
-                                    )
+                                    Modifier
+                                },
+                            ),
+                    ) {
+                        if (listPane == null) {
+                            ScreenTransition(navigator) { render(it) }
+                        } else {
+                            // The pair is capped and centred together rather than each pane
+                            // being centred in its own half. Left to spread, the detail pane
+                            // centres its own column in whatever is left over, and the two
+                            // panes drift apart across the middle of a wide screen with the
+                            // seam between them stranded on the far left.
+                            Row(
+                                Modifier
+                                    .widthIn(max = ListPaneWidth + ContentMaxWidth)
+                                    .fillMaxSize()
+                                    .align(Alignment.TopCenter),
+                            ) {
+                                Box(Modifier.width(ListPaneWidth).fillMaxHeight()) { render(listPane) }
+                                VerticalHairline()
+                                Box(Modifier.weight(1f)) {
+                                    // Only the pane that changed animates. Sliding the list
+                                    // out and back every time a row is opened would be
+                                    // movement saying something happened to the list, which
+                                    // is the one thing that did not.
+                                    ScreenTransition(navigator) { screen ->
+                                        if (screen == listPane) DetailPlaceholder() else render(screen)
+                                    }
                                 }
                             }
-
-                            is Screen.SubscriptionEditor -> SubscriptionEditorScreen(
-                                existing = screen.id?.let { id -> data.subscriptions.firstOrNull { it.id == id } },
-                                data = data,
-                                today = today,
-                                onBack = { navigator.back() },
-                                onSave = { subscription ->
-                                    repository.upsertSubscription(subscription)
-                                    // Editing came from the detail screen, so returning to it is enough.
-                                    if (screen.id != null) navigator.back()
-                                    else navigator.replace(Screen.SubscriptionDetail(subscription.id))
-                                },
-                                onManagePaymentMethods = { navigator.go(Screen.PaymentMethods) },
-                                onManageCategories = { navigator.go(Screen.Categories) },
-                                onCreateCategory = { repository.upsertCategory(it) },
-                            )
-
-                            Screen.PaymentMethods -> PaymentMethodsScreen(
-                                data = data,
-                                today = today,
-                                notificationsEnabled = notificationsEnabled,
-                                onBack = { navigator.back() },
-                                onSave = { repository.upsertPaymentMethod(it) },
-                                onDelete = { repository.deletePaymentMethod(it) },
-                            )
-
-                            Screen.Categories -> CategoriesScreen(
-                                data = data,
-                                onBack = { navigator.back() },
-                                onSave = { repository.upsertCategory(it) },
-                                onDelete = { repository.deleteCategory(it) },
-                            )
-
-                            Screen.Account -> AccountScreen(
-                                state = AccountState(
-                                    environment = environment,
-                                    signedIn = signedIn,
-                                    email = accountEmail,
-                                    syncStatus = syncStatus,
-                                    pendingCount = pendingCount,
-                                    busy = accountBusy,
-                                    message = accountMessage,
-                                ),
-                                onSignIn = { email, password ->
-                                    scope.launch {
-                                        accountBusy = true
-                                        accountMessage = account.signIn(email, password).message()
-                                        accountBusy = false
-                                        // Signing in is the moment there is finally something to talk to.
-                                        if (accountMessage == null) engine.syncNow()
-                                    }
-                                },
-                                onRegister = { email, password ->
-                                    scope.launch {
-                                        accountBusy = true
-                                        // The join password belongs to the server, not the
-                                        // person, so it comes from the environment rather than
-                                        // from anything typed on this screen.
-                                        accountMessage = account
-                                            .register(email, password, environment.joinPassword)
-                                            .message()
-                                        accountBusy = false
-                                        if (accountMessage == null) engine.syncNow()
-                                    }
-                                },
-                                onSignOut = { alsoDeleteLocalData ->
-                                    scope.launch {
-                                        account.signOut()
-                                        accountMessage = null
-                                        if (alsoDeleteLocalData) {
-                                            repository.resetLocalData()
-                                            // A new node id too: after a wipe this is a new device as far as
-                                            // the server is concerned, and the old push mark would describe
-                                            // records that are no longer here.
-                                            syncStateStore.save(SyncState(nodeId = newId("node")))
-                                        }
-                                        navigator.back()
-                                    }
-                                },
-                                onSyncNow = { scope.launch { engine.syncNow() } },
-                                onBack = { navigator.back() },
-                            )
-
-                            is Screen.ComingSoon -> ComingSoonScreen(
-                                area = screen.area,
-                                onBack = { navigator.back() },
-                            )
                         }
                     }
                 }
@@ -572,6 +658,71 @@ private fun Anima(
                     onClose = { showDeveloper = false },
                 )
             }
+        }
+    }
+}
+
+/** How wide the section list stays while a pane beside it shows what the list opened. */
+private val ListPaneWidth = 380.dp
+
+/**
+ * One screen giving way to the next, in whichever pane is doing the changing.
+ *
+ * The direction comes from [Navigator.lastMove] rather than from comparing screens, so a
+ * rail jump that shortens the stack reads as going back the same way a Back press does.
+ */
+@Composable
+private fun ScreenTransition(
+    navigator: Navigator,
+    modifier: Modifier = Modifier,
+    content: @Composable (Screen) -> Unit,
+) {
+    AnimatedContent(
+        targetState = navigator.current,
+        modifier = modifier,
+        transitionSpec = {
+            val forward = navigator.lastMove == Move.Forward
+            val transform = if (forward) {
+                (fadeIn(tween(200)) + slideInHorizontally(tween(240)) { it / 14 })
+                    .togetherWith(fadeOut(tween(140)))
+            } else {
+                // The same movement run backwards in time: the screen being left slides out
+                // the way it came in, and the one underneath fades up where it already sits
+                // rather than arriving from anywhere.
+                fadeIn(tween(140))
+                    .togetherWith(
+                        fadeOut(tween(200)) +
+                            slideOutHorizontally(tween(240)) { it / 14 },
+                    )
+            }
+            // Going forward the new screen arrives on top; going back the old one has to
+            // stay on top, because it is the thing moving out of the way.
+            transform.apply { targetContentZIndex = if (forward) 1f else -1f }
+        },
+        label = "screen",
+    ) { screen ->
+        content(screen)
+    }
+}
+
+/**
+ * What the detail pane says before anything has been opened in it.
+ *
+ * The pane keeps its width rather than letting the list spread into it: a list that changes
+ * width the first time a row is opened moves every other row out from under the pointer.
+ */
+@Composable
+private fun DetailPlaceholder() {
+    ScreenSurface { contentModifier ->
+        Box(
+            contentModifier.safeDrawingPadding().fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            EmptyState(
+                glyph = "🗂️",
+                title = stringResource(Res.string.finance_select_title),
+                body = stringResource(Res.string.finance_select_body),
+            )
         }
     }
 }

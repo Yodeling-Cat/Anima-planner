@@ -11,11 +11,13 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -152,6 +154,8 @@ fun AnimaCard(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
     contentPadding: PaddingValues = PaddingValues(16.dp),
+    color: Color = AnimaTheme.palette.elevated,
+    borderColor: Color = AnimaTheme.palette.hairline,
     content: @Composable () -> Unit,
 ) {
     val shape = MaterialTheme.shapes.medium
@@ -162,8 +166,8 @@ fun AnimaCard(
             .clip(shape)
             .then(if (onClick != null) Modifier.clickable(interaction, null, onClick = onClick) else Modifier),
         shape = shape,
-        color = AnimaTheme.palette.elevated,
-        border = BorderStroke(1.dp, AnimaTheme.palette.hairline),
+        color = color,
+        border = BorderStroke(1.dp, borderColor),
     ) {
         Box(Modifier.padding(contentPadding)) { content() }
     }
@@ -223,6 +227,17 @@ fun Hairline(modifier: Modifier = Modifier, inset: Dp = 0.dp) {
             .fillMaxWidth()
             .padding(horizontal = inset)
             .height(1.dp)
+            .background(AnimaTheme.palette.hairline),
+    )
+}
+
+/** The same hairline stood on its end, for the seam between two panes. */
+@Composable
+fun VerticalHairline(modifier: Modifier = Modifier) {
+    Box(
+        modifier
+            .fillMaxHeight()
+            .width(1.dp)
             .background(AnimaTheme.palette.hairline),
     )
 }

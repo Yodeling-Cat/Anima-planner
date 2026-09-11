@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.datetime.LocalDate
@@ -48,6 +49,8 @@ fun SubscriptionRow(
     monthlyEquivalent: Money?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    /** True where a pane beside this list is showing this subscription. */
+    selected: Boolean = false,
 ) {
     val accent = Color(subscription.colorArgb)
     val trialDays = subscription.daysUntilTrialEnds(today)
@@ -56,6 +59,16 @@ fun SubscriptionRow(
         modifier = modifier.fillMaxWidth().alpha(if (subscription.isActive) 1f else 0.55f),
         onClick = onClick,
         contentPadding = androidx.compose.foundation.layout.PaddingValues(14.dp),
+        // The row wears the subscription's own colour rather than one selection accent:
+        // the detail pane beside it is already full of that colour, and matching them is
+        // what ties the two panes together without drawing a line between them.
+        color = if (selected) {
+            accent.copy(alpha = if (AnimaTheme.palette.isDark) 0.16f else 0.10f)
+                .compositeOver(AnimaTheme.palette.elevated)
+        } else {
+            AnimaTheme.palette.elevated
+        },
+        borderColor = if (selected) accent.copy(alpha = 0.55f) else AnimaTheme.palette.hairline,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             SubscriptionIcon(subscription.icon, accent)

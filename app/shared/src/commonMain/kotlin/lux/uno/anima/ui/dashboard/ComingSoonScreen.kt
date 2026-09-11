@@ -26,7 +26,8 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun ComingSoonScreen(
     area: LifeArea,
-    onBack: () -> Unit,
+    /** Null where a rail is showing, which is the way back to the dashboard instead. */
+    onBack: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     ScreenSurface(modifier) { contentModifier ->

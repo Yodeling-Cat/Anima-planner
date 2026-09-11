@@ -94,12 +94,15 @@ enum class SubscriptionSort(private val labelRes: StringResource) {
 fun FinanceHomeScreen(
     data: FinanceData,
     today: LocalDate,
-    onBack: () -> Unit,
+    /** Null where a rail is showing, which is the way back to the dashboard instead. */
+    onBack: (() -> Unit)?,
     onOpenSubscription: (String) -> Unit,
     onAddSubscription: () -> Unit,
     onOpenPaymentMethods: () -> Unit,
     onOpenCategories: () -> Unit,
     modifier: Modifier = Modifier,
+    /** The subscription a pane beside this list is showing, where there is one. */
+    selectedId: String? = null,
 ) {
     var sort by rememberSaveable(stateSaver = enumSaver<SubscriptionSort>()) {
         mutableStateOf(SubscriptionSort.UPCOMING)
@@ -223,6 +226,7 @@ fun FinanceHomeScreen(
                             paymentMethod = methodsById[subscription.paymentMethodId],
                             monthlyEquivalent = subscription.monthlyEquivalentOrNull(today),
                             onClick = { onOpenSubscription(subscription.id) },
+                            selected = subscription.id == selectedId,
                         )
                     }
 
@@ -236,6 +240,7 @@ fun FinanceHomeScreen(
                                 paymentMethod = methodsById[subscription.paymentMethodId],
                                 monthlyEquivalent = null,
                                 onClick = { onOpenSubscription(subscription.id) },
+                                selected = subscription.id == selectedId,
                             )
                         }
                     }

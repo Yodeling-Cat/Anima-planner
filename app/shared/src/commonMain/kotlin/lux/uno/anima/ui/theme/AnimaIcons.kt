@@ -114,6 +114,11 @@ object AnimaIcons {
         arcToRelative(7.2f, 7.2f, 0f, false, true, 14.4f, 0f)
     }
 
+    val Home = stroked("Home") {
+        moveTo(3.5f, 10.5f); lineTo(12f, 3.5f); lineTo(20.5f, 10.5f)
+        moveTo(5.5f, 9f); lineTo(5.5f, 20f); lineTo(18.5f, 20f); lineTo(18.5f, 9f)
+    }
+
     val Wallet = stroked("Wallet") {
         moveTo(3.5f, 7f); lineTo(3.5f, 18.5f); lineTo(20.5f, 18.5f); lineTo(20.5f, 9.5f); lineTo(3.5f, 9.5f)
         moveTo(3.5f, 7f); lineTo(16f, 5f); lineTo(16f, 9.5f)
