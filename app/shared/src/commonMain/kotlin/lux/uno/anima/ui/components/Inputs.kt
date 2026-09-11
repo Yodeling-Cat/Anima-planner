@@ -281,9 +281,18 @@ fun ToggleRow(
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
+            // Both states are spelled out. Material's unchecked default puts the thumb on
+            // `outline` and the track on `surfaceVariant`, which in a dark theme are two
+            // shades of the same near-black — the knob disappears into the track and the
+            // switch stops saying which way it is set. The thumb is the part that has to
+            // read at a glance, so it takes the palette's muted grey against either theme.
             colors = SwitchDefaults.colors(
                 checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
                 checkedTrackColor = MaterialTheme.colorScheme.primary,
+                checkedBorderColor = MaterialTheme.colorScheme.primary,
+                uncheckedThumbColor = AnimaTheme.palette.muted,
+                uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                uncheckedBorderColor = AnimaTheme.palette.muted.copy(alpha = 0.45f),
             ),
         )
     }
