@@ -1,0 +1,460 @@
+<resources>
+    <!--
+      Every word the app says, in the language it was written in.
+
+      Keys are grouped by the screen that shows them. A string used on two screens keeps one
+      key; a string that merely happens to read the same in English gets two, because the two
+      places diverge the moment another language has to pick a gender or a case for it.
+    -->
+
+    <!-- Common -->
+    <string name="common_cancel">Cancel</string>
+    <string name="common_save">Save</string>
+    <string name="common_delete">Delete</string>
+    <string name="common_keep">Keep</string>
+    <string name="common_back">Back</string>
+    <string name="common_close">Close</string>
+    <string name="common_apply">Apply</string>
+    <string name="common_reset">Reset</string>
+    <string name="common_clear">Clear</string>
+    <string name="common_edit">Edit</string>
+    <string name="common_active">Active</string>
+    <string name="common_not_set">Not set</string>
+
+    <!-- Dates. The month names are the form that appears inside a date, which in Slovak and
+         Czech is the genitive rather than the name of the month on its own. -->
+    <string-array name="months_long">
+        <item>January</item>
+        <item>February</item>
+        <item>March</item>
+        <item>April</item>
+        <item>May</item>
+        <item>June</item>
+        <item>July</item>
+        <item>August</item>
+        <item>September</item>
+        <item>October</item>
+        <item>November</item>
+        <item>December</item>
+    </string-array>
+    <string-array name="months_short">
+        <item>Jan</item>
+        <item>Feb</item>
+        <item>Mar</item>
+        <item>Apr</item>
+        <item>May</item>
+        <item>Jun</item>
+        <item>Jul</item>
+        <item>Aug</item>
+        <item>Sep</item>
+        <item>Oct</item>
+        <item>Nov</item>
+        <item>Dec</item>
+    </string-array>
+    <!-- day, month, year -->
+    <string name="date_long">%1$s %2$s %3$s</string>
+    <!-- day, short month -->
+    <string name="date_short">%1$s %2$s</string>
+    <!-- day, short month, year -->
+    <string name="date_short_with_year">%1$s %2$s %3$s</string>
+    <!-- short month, two-digit year -->
+    <string name="date_month_year">%1$s \'%2$s</string>
+
+    <!-- How far away a day is -->
+    <string name="relative_today">today</string>
+    <string name="relative_tomorrow">tomorrow</string>
+    <string name="relative_yesterday">yesterday</string>
+    <plurals name="relative_in_days">
+        <item quantity="one">in %d day</item>
+        <item quantity="other">in %d days</item>
+    </plurals>
+    <plurals name="relative_in_weeks">
+        <item quantity="one">in a week</item>
+        <item quantity="other">in %d weeks</item>
+    </plurals>
+    <plurals name="relative_in_months">
+        <item quantity="one">in a month</item>
+        <item quantity="other">in %d months</item>
+    </plurals>
+    <plurals name="relative_days_ago">
+        <item quantity="one">%d day ago</item>
+        <item quantity="other">%d days ago</item>
+    </plurals>
+    <plurals name="relative_weeks_ago">
+        <item quantity="one">a week ago</item>
+        <item quantity="other">%d weeks ago</item>
+    </plurals>
+    <plurals name="relative_months_ago">
+        <item quantity="one">a month ago</item>
+        <item quantity="other">%d months ago</item>
+    </plurals>
+
+    <!-- Billing cycles -->
+    <string name="billing_daily">Daily</string>
+    <string name="billing_weekly">Weekly</string>
+    <string name="billing_monthly">Monthly</string>
+    <string name="billing_yearly">Yearly</string>
+    <plurals name="billing_every_days">
+        <item quantity="one">Every day</item>
+        <item quantity="other">Every %d days</item>
+    </plurals>
+    <plurals name="billing_every_weeks">
+        <item quantity="one">Every week</item>
+        <item quantity="other">Every %d weeks</item>
+    </plurals>
+    <plurals name="billing_every_months">
+        <item quantity="one">Every month</item>
+        <item quantity="other">Every %d months</item>
+    </plurals>
+    <plurals name="billing_every_years">
+        <item quantity="one">Every year</item>
+        <item quantity="other">Every %d years</item>
+    </plurals>
+    <string name="billing_suffix_day">/day</string>
+    <string name="billing_suffix_week">/wk</string>
+    <string name="billing_suffix_month">/mo</string>
+    <string name="billing_suffix_year">/yr</string>
+    <string name="billing_suffix_days">/%1$dd</string>
+    <string name="billing_suffix_weeks">/%1$dw</string>
+    <string name="billing_suffix_months">/%1$dmo</string>
+    <string name="billing_suffix_years">/%1$dyr</string>
+
+    <!-- Payment method kinds -->
+    <string name="payment_kind_card">Card</string>
+    <string name="payment_kind_bank">Bank account</string>
+    <string name="payment_kind_wallet">Wallet</string>
+    <string name="payment_kind_cash">Cash</string>
+    <string name="payment_kind_other">Other</string>
+
+    <!-- Categories seeded on first launch, and the stand-in for having none -->
+    <string name="category_uncategorised">Uncategorised</string>
+    <string name="category_default_entertainment">Entertainment</string>
+    <string name="category_default_software">Software</string>
+    <string name="category_default_music">Music</string>
+    <string name="category_default_health">Health</string>
+    <string name="category_default_home">Home</string>
+    <string name="category_default_finance">Finance</string>
+    <string name="category_default_learning">Learning</string>
+    <string name="category_default_transport">Transport</string>
+
+    <!-- Environments -->
+    <string name="environment_prod_label">Production</string>
+    <string name="environment_prod_description">Your real data, synced to the live server.</string>
+    <string name="environment_dev_label">Development</string>
+    <string name="environment_dev_description">A separate copy, synced to a server you are running.</string>
+    <string name="environment_local_label">On device only</string>
+    <string name="environment_local_description">A scratch copy that never leaves this device and never syncs.</string>
+
+    <!-- The doors on the home screen -->
+    <string name="area_finance_title">Finance</string>
+    <string name="area_finance_tagline">Subscriptions, budget, where it actually goes</string>
+    <string name="area_health_title">Health</string>
+    <string name="area_health_tagline">Body, sleep, movement</string>
+    <string name="area_philosophy_title">Philosophy</string>
+    <string name="area_philosophy_tagline">Questions worth sitting with</string>
+    <string name="area_religion_title">Religion</string>
+    <string name="area_religion_tagline">Practice, ritual, stillness</string>
+    <string name="area_fun_title">Fun</string>
+    <string name="area_fun_tagline">The part that is not a project</string>
+    <string name="coming_soon_not_built">NOT BUILT YET</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_eyebrow">ANIMA</string>
+    <string name="dashboard_account">Account</string>
+    <string name="greeting_still_up">Still up</string>
+    <string name="greeting_morning">Good morning</string>
+    <string name="greeting_afternoon">Good afternoon</string>
+    <string name="greeting_evening">Good evening</string>
+    <string name="dashboard_per_month">per month</string>
+    <plurals name="dashboard_trials_ending">
+        <item quantity="one">%d trial ending</item>
+        <item quantity="other">%d trials ending</item>
+    </plurals>
+    <plurals name="dashboard_subscription_count">
+        <item quantity="one">%d subscription</item>
+        <item quantity="other">%d subscriptions</item>
+    </plurals>
+    <!-- subscription count, next charge -->
+    <string name="dashboard_glance_with_next">%1$s · %2$s</string>
+    <!-- subscription name, how far away -->
+    <string name="dashboard_next_charge">%1$s %2$s</string>
+
+    <!-- Account -->
+    <string name="account_title">Account</string>
+    <string name="account_no_server_body">This environment keeps everything on this device and never syncs, so there is no account to sign in to.</string>
+    <string name="account_sign_in">Sign in</string>
+    <string name="account_sign_in_body">Your subscriptions are on this device already. Signing in is what keeps them the same on your other ones.</string>
+    <string name="account_email">Email</string>
+    <string name="account_email_placeholder">you@example.com</string>
+    <string name="account_password">Password</string>
+    <string name="account_working">Working…</string>
+    <string name="account_create">Create an account</string>
+    <string name="account_signing_in_to">Signing in to %1$s</string>
+    <string name="account_signed_in">Signed in</string>
+    <string name="account_sign_out">Sign out</string>
+    <string name="account_sign_out_body">Ends the session on this device. Your subscriptions stay here unless you ask for them to be removed.</string>
+    <string name="account_sync">Sync</string>
+    <string name="account_sync_now">Sync now</string>
+    <string name="account_sign_out_title">Sign out?</string>
+    <string name="account_sign_out_dialog_body">Your subscriptions stay on this device, and your email address is remembered so signing back in only asks for a password.</string>
+    <plurals name="account_sign_out_pending">
+        <item quantity="one">%d change here hasn\'t reached the server yet. Removing it now would lose it.</item>
+        <item quantity="other">%d changes here haven\'t reached the server yet. Removing them now would lose them.</item>
+    </plurals>
+    <string name="account_sign_out_keep_data">Sign out, keep data</string>
+    <string name="account_remove_data">Remove data</string>
+    <string name="account_error_rejected">That email and password do not match an account.</string>
+    <string name="account_error_registration_closed">This server is not accepting new accounts. Ask whoever runs it for a join password, or sign in with an account that already exists.</string>
+    <string name="account_error_wrong_join_password">That join password is wrong. It is set in the developer screen under the server address, and whoever runs the server can tell you what it should be.</string>
+    <string name="account_error_unreachable">Could not reach the server. Check the address in the developer screen, or try again when you are back online.</string>
+
+    <!-- Sync state, shown on the account screen and again in the developer screen -->
+    <string name="sync_headline_syncing">Syncing</string>
+    <string name="sync_headline_failed">Last attempt failed</string>
+    <string name="sync_headline_offline">Cannot reach the server</string>
+    <string name="sync_headline_signed_out">Signed out</string>
+    <string name="sync_headline_up_to_date">Up to date</string>
+    <plurals name="sync_headline_pending">
+        <item quantity="one">%d waiting to go up</item>
+        <item quantity="other">%d waiting to go up</item>
+    </plurals>
+    <string name="sync_detail_syncing">Sending and collecting changes.</string>
+    <string name="sync_detail_failed">The server was reached and refused the exchange. Nothing here has been lost.</string>
+    <string name="sync_detail_offline">Everything still works. Changes are kept here and go up when the server can be reached again.</string>
+    <string name="sync_detail_pending">Changes made here have not reached the server yet.</string>
+    <string name="sync_detail_up_to_date">Everything here has reached the server.</string>
+    <string name="sync_detail_never_syncs">This environment never syncs, so there is nothing to be up to date with.</string>
+    <string name="sync_detail_offline_short">Edits are kept here and go up when the server is reachable again. Nothing is lost.</string>
+    <string name="sync_detail_signed_out">No session for this environment. Everything still works offline; there is no way to sign in from the app yet.</string>
+    <string name="sync_detail_failed_short">Something was reached and refused the exchange.</string>
+    <string name="sync_detail_idle">Changes are sent shortly after each edit.</string>
+
+    <!-- Developer screen -->
+    <string name="developer_title">Developer</string>
+    <string name="developer_environment">Environment</string>
+    <string name="developer_environment_body">Each environment keeps its own data on this device. Switching never copies anything between them, and nothing is deleted.</string>
+    <string name="developer_server">Server</string>
+    <string name="developer_no_server_body">This environment has no server by design. Nothing it holds can leave the device.</string>
+    <string name="developer_this_environment">This environment</string>
+    <string name="developer_data_file">Data file</string>
+    <string name="developer_icons">Icons</string>
+    <string name="developer_subscriptions">Subscriptions</string>
+    <string name="developer_payment_methods">Payment methods</string>
+    <string name="developer_categories">Categories</string>
+    <string name="developer_sync">Sync</string>
+    <string name="developer_status">Status</string>
+    <string name="developer_shake_title">Opening this screen</string>
+    <string name="developer_shake_body">This device has no accelerometer, so the shake gesture is unavailable. Ctrl+Shift+D opens this screen instead.</string>
+    <string name="developer_address">Address</string>
+    <string name="developer_address_body">Leave empty to go back to the built-in address. A phone cannot reach the laptop running the server on \"localhost\" — use its address on the network.</string>
+    <string name="developer_join_password">Join password</string>
+    <string name="developer_join_password_placeholder">Only needed to create an account</string>
+    <string name="developer_join_password_body">A private server asks newcomers for this. Whoever runs it can tell you what it is. It is not your account password and is only used when creating an account — signing in afterwards never needs it.</string>
+
+    <!-- Shared components -->
+    <string name="color_picker_title">Pick a colour</string>
+    <string name="color_picker_hex">Hex</string>
+    <string name="color_picker_hex_placeholder">6C7BFF</string>
+    <string name="color_picker_confirm">Use this colour</string>
+    <string name="color_picker_custom">Custom colour</string>
+    <string name="date_field_choose">Choose</string>
+    <string name="emoji_icon_label">Icon</string>
+
+    <!-- Finance home -->
+    <string name="finance_title">Finance</string>
+    <string name="finance_categories">Categories</string>
+    <string name="finance_payment_methods">Payment methods</string>
+    <string name="finance_add">Add</string>
+    <string name="finance_empty_title">Nothing tracked yet</string>
+    <string name="finance_empty_body">Add the things that quietly bill you every month, and this screen starts telling you where the money goes.</string>
+    <string name="finance_empty_action">Add a subscription</string>
+    <string name="finance_section_cards">Cards</string>
+    <string name="finance_section_trials">Trials</string>
+    <string name="finance_section_coming_up">Coming up</string>
+    <string name="finance_section_where_it_goes">Where it goes</string>
+    <string name="finance_section_subscriptions">Subscriptions</string>
+    <string name="finance_section_paused">Paused</string>
+    <string name="finance_monthly_outflow">MONTHLY OUTFLOW</string>
+    <plurals name="finance_active_count">
+        <item quantity="one">%d active subscription</item>
+        <item quantity="other">%d active subscriptions</item>
+    </plurals>
+    <!-- yearly total, active subscription count -->
+    <string name="finance_total_line">%1$s a year · %2$s</string>
+    <!-- a monthly amount on a chip -->
+    <string name="finance_monthly_pill">%1$s/mo</string>
+    <string name="finance_trial_ends_today">Free trial ends today</string>
+    <string name="finance_trial_ends_tomorrow">Free trial ends tomorrow</string>
+    <string name="finance_trial_ends_in">Free trial ends %1$s</string>
+    <!-- price, cycle suffix -->
+    <string name="finance_then_price">then %1$s%2$s</string>
+    <string name="sort_upcoming">Upcoming</string>
+    <string name="sort_cost">Cost</string>
+    <string name="sort_name">Name</string>
+
+    <!-- One subscription in a list -->
+    <string name="sub_paused">Paused</string>
+    <!-- next renewal date, how far away -->
+    <string name="sub_next_renewal">%1$s · %2$s</string>
+    <string name="sub_trial_ends_today">Trial ends today</string>
+    <string name="sub_trial_ends_in">Trial · %1$s</string>
+    <string name="sub_monthly_equivalent">≈ %1$s/mo</string>
+
+    <!-- Card expiry, as shown beside a payment method -->
+    <string name="expiry_expired_short">Expired %1$s</string>
+    <string name="expiry_expired_full">Expired on %1$s</string>
+    <string name="expiry_today_short">Expires today</string>
+    <string name="expiry_today_full">Today is the last day this card works</string>
+    <string name="expiry_soon_short">Expires %1$s</string>
+    <!-- MM/YY, how far away -->
+    <string name="expiry_soon_full">Expires %1$s, %2$s</string>
+    <string name="expiry_later_short">Expires %1$s</string>
+    <string name="expiry_later_full">Expires %1$s</string>
+
+    <!-- Payment methods -->
+    <string name="payment_methods_title">Payment methods</string>
+    <string name="payment_methods_add">Add</string>
+    <string name="payment_methods_empty_title">No payment methods</string>
+    <string name="payment_methods_empty_body">Add the cards and accounts you pay from, and every subscription can say which one it hits.</string>
+    <string name="payment_methods_empty_action">Add one</string>
+    <!-- kind -->
+    <string name="payment_method_unused">%1$s · not used yet</string>
+    <!-- kind, subscription count -->
+    <plurals name="payment_method_used">
+        <item quantity="one">%1$s · %2$d subscription</item>
+        <item quantity="other">%1$s · %2$d subscriptions</item>
+    </plurals>
+    <string name="payment_method_delete_description">Delete %1$s</string>
+    <string name="payment_method_delete_title">Delete %1$s?</string>
+    <string name="payment_method_delete_unused">Nothing is paying through it.</string>
+    <plurals name="payment_method_delete_used">
+        <item quantity="one">%d subscription will be left without a payment method.</item>
+        <item quantity="other">%d subscriptions will be left without a payment method.</item>
+    </plurals>
+    <string name="payment_method_new">New payment method</string>
+    <string name="payment_method_edit">Edit %1$s</string>
+    <string name="payment_method_name">Name</string>
+    <string name="payment_method_name_placeholder">Personal Visa</string>
+    <string name="payment_method_last4">Last four digits (optional)</string>
+    <string name="payment_method_last4_placeholder">4417</string>
+    <string name="payment_method_expiry">Expires (optional)</string>
+    <string name="payment_method_expiry_placeholder">MM/YY</string>
+    <string name="expiry_hint_incomplete">Four digits, month first — 09/26.</string>
+    <string name="expiry_hint_none">Add it and Anima reminds you a month before the card stops working.</string>
+    <string name="expiry_hint_expired">This card expired on %1$s.</string>
+    <string name="expiry_hint_soon">Works until %1$s. You will be reminded on the day.</string>
+    <string name="expiry_hint_future">You will be reminded on %1$s, then again on %2$s.</string>
+    <string name="expiry_hint_no_notifications">%1$s Notifications are switched off, so it will only show up inside the app.</string>
+
+    <!-- Categories -->
+    <string name="categories_title">Categories</string>
+    <string name="categories_new">New category</string>
+    <string name="categories_empty_title">No categories</string>
+    <string name="categories_empty_body">Categories are what the \"where it goes\" breakdown is built from. Add the ones that match how you actually think about spending.</string>
+    <string name="categories_empty_action">Add one</string>
+    <string name="categories_nothing_in_it">Nothing in it yet</string>
+    <plurals name="categories_used">
+        <item quantity="one">%d subscription</item>
+        <item quantity="other">%d subscriptions</item>
+    </plurals>
+    <string name="category_delete_description">Delete %1$s</string>
+    <string name="category_delete_title">Delete %1$s?</string>
+    <string name="category_delete_unused">Nothing is filed under it.</string>
+    <plurals name="category_delete_used">
+        <item quantity="one">%d subscription will become uncategorised. Nothing else about it changes.</item>
+        <item quantity="other">%d subscriptions will become uncategorised. Nothing else about them changes.</item>
+    </plurals>
+    <string name="category_edit">Edit %1$s</string>
+    <string name="category_name">Name</string>
+    <string name="category_name_placeholder">Coffee</string>
+
+    <!-- Subscription detail -->
+    <string name="detail_pause">Pause</string>
+    <string name="detail_resume">Resume</string>
+    <string name="detail_price_history">Price history</string>
+    <string name="detail_record_change">Record change</string>
+    <string name="detail_details">Details</string>
+    <string name="detail_next_charge">Next charge</string>
+    <string name="detail_that_is">That is</string>
+    <string name="detail_billing">Billing</string>
+    <string name="detail_tracking_since">Tracking since</string>
+    <string name="detail_paid_with">Paid with</string>
+    <string name="detail_category">Category</string>
+    <string name="detail_notes">Notes</string>
+    <string name="detail_delete_title">Delete %1$s?</string>
+    <string name="detail_delete_body">Its price history goes with it. This cannot be undone.</string>
+    <string name="detail_yearly">%1$s a year</string>
+    <!-- monthly cost, yearly cost -->
+    <string name="detail_monthly_and_yearly">%1$s a month · %2$s a year</string>
+    <string name="detail_one_price">One price recorded so far. Log the next change and this becomes a trend.</string>
+    <string name="detail_same_price">Same price as when you started</string>
+    <!-- a percentage, already formatted -->
+    <string name="detail_up_since">Up %1$s since you started</string>
+    <string name="detail_down_since">Down %1$s since you started</string>
+    <!-- first price, its date, latest price -->
+    <string name="detail_price_from_to">%1$s on %2$s → %3$s</string>
+    <string name="detail_takes_effect">Takes effect %1$s</string>
+    <string name="detail_remove_price_point">Remove this price point</string>
+    <string name="detail_trial">TRIAL</string>
+    <string name="detail_trial_ended">Trial ended %1$s</string>
+    <string name="detail_trial_ends_today">Trial ends today</string>
+    <!-- how far away, the date itself -->
+    <string name="detail_trial_ends_on">Trial ends %1$s, on %2$s</string>
+    <!-- days before, price, cycle suffix -->
+    <plurals name="detail_trial_reminder">
+        <item quantity="one">You will be reminded %1$d day before it converts to %2$s%3$s.</item>
+        <item quantity="other">You will be reminded %1$d days before it converts to %2$s%3$s.</item>
+    </plurals>
+    <string name="detail_end_trial">Trial is over — it is a paid plan now</string>
+    <string name="detail_record_price_title">Record a price change</string>
+    <string name="detail_new_price">New price</string>
+    <string name="detail_price_placeholder">0.00</string>
+    <string name="detail_effective_from">Effective from</string>
+    <string name="detail_why">Why (optional)</string>
+    <string name="detail_why_placeholder">Annual increase</string>
+    <string name="chart_today">today</string>
+
+    <!-- Subscription editor -->
+    <string name="editor_new">New subscription</string>
+    <string name="editor_edit">Edit %1$s</string>
+    <string name="editor_what_is_it">What is it</string>
+    <string name="editor_name">Name</string>
+    <string name="editor_name_placeholder">Netflix</string>
+    <string name="editor_category">Category</string>
+    <string name="editor_new_category">New…</string>
+    <string name="editor_manage">Manage…</string>
+    <string name="editor_what_it_costs">What it costs</string>
+    <string name="editor_amount">Amount</string>
+    <string name="editor_amount_placeholder">0.00</string>
+    <string name="editor_price_note">Changing the amount here corrects today\'s price. To keep the old price in the history, use \"Record change\" on the detail screen instead.</string>
+    <string name="editor_how_often">How often</string>
+    <string name="editor_next_charge">Next charge</string>
+    <string name="editor_trial">Trial</string>
+    <string name="editor_is_trial">This is a trial</string>
+    <string name="editor_is_trial_subtitle">Anima will flag it before the free period converts</string>
+    <string name="editor_trial_ends">Trial ends</string>
+    <string name="editor_remind_me">REMIND ME</string>
+    <plurals name="editor_days_before">
+        <item quantity="one">%d day before</item>
+        <item quantity="other">%d days before</item>
+    </plurals>
+    <string name="editor_paid_with">Paid with</string>
+    <string name="editor_no_payment_methods">No payment methods yet.</string>
+    <string name="editor_notes">Notes</string>
+    <string name="editor_notes_placeholder">Anything worth remembering when you review this</string>
+    <string name="editor_add">Add subscription</string>
+    <string name="editor_save">Save changes</string>
+    <string name="editor_image_error">That file could not be read as an image.</string>
+    <string name="editor_custom_image">Custom image</string>
+    <string name="editor_image_body">Scaled down to %1$dpx and stored with your data</string>
+    <string name="editor_optimising">Optimising…</string>
+    <string name="editor_replace">Replace</string>
+    <string name="editor_use_emoji">Use an emoji</string>
+    <string name="editor_upload">Upload an image</string>
+
+    <!-- Reminders, which arrive as notifications -->
+    <string name="reminder_card_expiring_title">%1$s expires in a month</string>
+    <string name="reminder_card_expiring_body">It stops working after %1$s. Order the replacement now so nothing you pay for fails.</string>
+    <string name="reminder_card_today_title">%1$s expires today</string>
+    <string name="reminder_card_today_body">Today is the last day it works. Update every subscription charged to it.</string>
+</resources>

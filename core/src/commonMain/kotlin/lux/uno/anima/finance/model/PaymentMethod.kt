@@ -2,12 +2,13 @@ package lux.uno.anima.finance.model
 
 import kotlinx.serialization.Serializable
 
-enum class PaymentMethodKind(val label: String, val glyph: String) {
-    CARD("Card", "💳"),
-    BANK("Bank account", "🏦"),
-    WALLET("Wallet", "📱"),
-    CASH("Cash", "💵"),
-    OTHER("Other", "🔗"),
+/** The glyph travels with the kind; its name is language and lives in the UI module. */
+enum class PaymentMethodKind(val glyph: String) {
+    CARD("💳"),
+    BANK("🏦"),
+    WALLET("📱"),
+    CASH("💵"),
+    OTHER("🔗"),
 }
 
 /** A card, account or wallet that subscriptions are charged to. */

@@ -65,7 +65,22 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
+        jvmTest.dependencies {
+            implementation(libs.kotlinx.coroutinesTest)
+            // Reading a string resource on the JVM goes through Skiko, whose native library
+            // only arrives with the desktop artifact. Test-only: the module itself is shared
+            // by Android and iOS and must not depend on the desktop one.
+            implementation(compose.desktop.currentOs)
+        }
     }
+}
+
+// One predictable package for the generated `Res` class, so every screen imports strings
+// from `lux.uno.anima.resources` rather than from a name derived from the module path.
+compose.resources {
+    publicResClass = true
+    packageOfResClass = "lux.uno.anima.resources"
+    generateResClass = auto
 }
 
 dependencies {

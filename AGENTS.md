@@ -128,6 +128,41 @@ drop a price point recorded on the other device.
 Device-local state (handled reminder ids, sync cursor, node id) lives in a local prefs
 file and is never synced.
 
+## Language
+
+The app speaks English, Slovak and Czech, and follows the device's language with no setting
+of its own — a phone set to Slovak opens in Slovak.
+
+Strings live in `app/shared/…/composeResources/values{,-sk,-cs}/strings.xml` and are reached
+through the generated `lux.uno.anima.resources.Res`. Screens import that package with a
+wildcard, which is the one place the codebase does: naming two hundred strings one import at
+a time buys nothing.
+
+**`core` holds no language.** It has no Compose dependency and cannot read a string file, so
+anything a person reads is shaped there and worded in `app/shared/…/ui/text/`:
+
+- `RelativeDay` says *three weeks away*; `relativeDayLabel` says “in 3 weeks” or “o 3 týždne”.
+  Where the rounding happens is domain logic; the plural form is not.
+- `BillingCycle` and `PaymentMethodKind` carry periods and glyphs, not names.
+- `AppEnvironment` carries an id, and the UI maps it to a name and a description.
+- Reminders are the exception that proves it: a notification is written when it is armed,
+  sometimes a month before it appears, so `ReminderCoordinator` takes a `ReminderStrings`
+  and `app/shared` implements it. Changing the device language re-arms the schedule on the
+  next sync, which is what puts the new wording in front of anyone.
+
+The eight starting categories are seeded through `FinanceRepository(seedCategories = …)` so
+their labels arrive translated. Their ids, glyphs and colours are the same in every language
+and every record is still stamped `Hlc.Zero`, so two devices set up in different languages
+converge on one list rather than on sixteen.
+
+Money is not translated. `Money.format` follows the *currency's* convention — `$12,345.67`,
+`12 345,67 Kč` — because that is a property of the amount rather than of the reader.
+
+Adding a string means adding it to all three files. `plurals` rather than an `if` on the
+count: Slovak and Czech have three forms where English has two, and picking between them is
+the resource file's job. Formatting arguments are numbered (`%1$s`) so a translation can
+reorder them.
+
 ## Environments
 
 Three, in `core/…/dev/Environment.kt`: **Production**, **Development**, **On device only**.
@@ -214,6 +249,8 @@ moment the record changes underneath, and an id is something saved state can kee
 - `FinanceStore` reads and writes the whole dataset as one JSON document. The volumes
   here do not justify a database on the client.
 - Tests live beside the code they cover in `commonTest` and must not need a network.
+- **Every user-facing string comes from the resources.** A literal in a `Text` is a string
+  that will never be translated — see *Language* above for where it belongs instead.
 - **No commas in backtick test names.** Kotlin/Native rejects them, so one comma breaks
   `:core:allTests` on every target at once while `jvmTest` stays green. Rephrase instead.
 - The server module's own code lives under `lux.uno.anima.server.*`; `lux.uno.anima.sync`

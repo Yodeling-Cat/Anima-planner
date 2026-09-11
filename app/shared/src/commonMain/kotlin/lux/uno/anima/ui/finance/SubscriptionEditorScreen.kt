@@ -46,6 +46,7 @@ import lux.uno.anima.finance.model.currentPrice
 import lux.uno.anima.finance.model.nextRenewal
 import lux.uno.anima.finance.store.ICON_MAX_EDGE
 import lux.uno.anima.platform.newId
+import lux.uno.anima.resources.*
 import lux.uno.anima.ui.components.AccentSwatches
 import lux.uno.anima.ui.components.AnimaTextField
 import lux.uno.anima.ui.components.AnimaTopBar
@@ -63,6 +64,8 @@ import lux.uno.anima.ui.components.ToggleRow
 import lux.uno.anima.ui.icons.LocalIconImages
 import lux.uno.anima.ui.icons.SubscriptionIcon
 import lux.uno.anima.ui.icons.rememberImagePicker
+import lux.uno.anima.ui.text.displayLabel
+import lux.uno.anima.ui.text.label
 import lux.uno.anima.ui.theme.AnimaIcons
 import lux.uno.anima.ui.theme.AnimaTheme
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -70,6 +73,9 @@ import lux.uno.anima.ui.components.IconRefSaver
 import lux.uno.anima.ui.components.LocalDateSaver
 import lux.uno.anima.ui.components.StringListSaver
 import lux.uno.anima.ui.components.BillingCycleSaver
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 
 private val TrialReminderChoices = listOf(1, 3, 7, 14)
 
@@ -135,7 +141,11 @@ fun SubscriptionEditorScreen(
     ScreenSurface(modifier) { contentModifier ->
         Column(contentModifier.safeDrawingPadding().fillMaxSize()) {
             AnimaTopBar(
-                title = if (existing == null) "New subscription" else "Edit ${existing.name}",
+                title = if (existing == null) {
+                    stringResource(Res.string.editor_new)
+                } else {
+                    stringResource(Res.string.editor_edit, existing.name)
+                },
                 onBack = onBack,
             )
 
@@ -147,12 +157,12 @@ fun SubscriptionEditorScreen(
                     .padding(bottom = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp),
             ) {
-                FormSection("What is it") {
+                FormSection(stringResource(Res.string.editor_what_is_it)) {
                     AnimaTextField(
                         value = name,
                         onValueChange = { name = it },
-                        label = "Name",
-                        placeholder = "Netflix",
+                        label = stringResource(Res.string.editor_name),
+                        placeholder = stringResource(Res.string.editor_name_placeholder),
                     )
                     IconChooser(icon = icon, accent = accent, onChange = { icon = it })
                     ColorSwatchRow(
@@ -162,11 +172,11 @@ fun SubscriptionEditorScreen(
                     )
                 }
 
-                FormSection("Category") {
+                FormSection(stringResource(Res.string.editor_category)) {
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         data.categories.forEach { option ->
                             ChoiceChip(
-                                label = option.label,
+                                label = option.displayLabel(),
                                 selected = categoryId == option.id,
                                 // Tapping the chosen one again clears it back to uncategorised.
                                 onClick = {
@@ -178,14 +188,14 @@ fun SubscriptionEditorScreen(
                             )
                         }
                         ChoiceChip(
-                            label = "New…",
+                            label = stringResource(Res.string.editor_new_category),
                             selected = false,
                             onClick = { newCategoryOpen = true },
                             leading = "+",
                             modifier = Modifier.padding(bottom = 8.dp),
                         )
                         ChoiceChip(
-                            label = "Manage…",
+                            label = stringResource(Res.string.editor_manage),
                             selected = false,
                             onClick = onManageCategories,
                             modifier = Modifier.padding(bottom = 8.dp),
@@ -193,12 +203,12 @@ fun SubscriptionEditorScreen(
                     }
                 }
 
-                FormSection("What it costs") {
+                FormSection(stringResource(Res.string.editor_what_it_costs)) {
                     AnimaTextField(
                         value = amount,
                         onValueChange = { amount = it.filterAmountInput() },
-                        label = "Amount",
-                        placeholder = "0.00",
+                        label = stringResource(Res.string.editor_amount),
+                        placeholder = stringResource(Res.string.editor_amount_placeholder),
                         keyboardType = KeyboardType.Decimal,
                         prefix = Currency.fromCode(currency)?.symbol ?: currency,
                     )
@@ -214,19 +224,18 @@ fun SubscriptionEditorScreen(
                     }
                     if (existing != null) {
                         Text(
-                            text = "Changing the amount here corrects today's price. To keep the old "
-                                + "price in the history, use \"Record change\" on the detail screen instead.",
+                            text = stringResource(Res.string.editor_price_note),
                             style = MaterialTheme.typography.bodySmall,
                             color = AnimaTheme.palette.faint,
                         )
                     }
                 }
 
-                FormSection("How often") {
+                FormSection(stringResource(Res.string.editor_how_often)) {
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         BillingCycle.presets.forEach { option ->
                             ChoiceChip(
-                                label = option.label,
+                                label = option.label(),
                                 selected = cycle == option,
                                 onClick = { cycle = option },
                                 accent = accent,
@@ -235,28 +244,28 @@ fun SubscriptionEditorScreen(
                         }
                     }
                     DateField(
-                        label = "Next charge",
+                        label = stringResource(Res.string.editor_next_charge),
                         date = nextCharge,
                         onDateChange = { nextCharge = it },
                     )
                 }
 
-                FormSection("Trial") {
+                FormSection(stringResource(Res.string.editor_trial)) {
                     ToggleRow(
-                        title = "This is a trial",
-                        subtitle = "Anima will flag it before the free period converts",
+                        title = stringResource(Res.string.editor_is_trial),
+                        subtitle = stringResource(Res.string.editor_is_trial_subtitle),
                         checked = hasTrial,
                         onCheckedChange = { hasTrial = it },
                     )
                     if (hasTrial) {
                         DateField(
-                            label = "Trial ends",
+                            label = stringResource(Res.string.editor_trial_ends),
                             date = trialEnds,
                             onDateChange = { trialEnds = it },
                         )
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(
-                                text = "REMIND ME",
+                                text = stringResource(Res.string.editor_remind_me),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = AnimaTheme.palette.faint,
                             )
@@ -266,7 +275,11 @@ fun SubscriptionEditorScreen(
                             ) {
                                 TrialReminderChoices.forEach { days ->
                                     ChoiceChip(
-                                        label = if (days == 1) "1 day before" else "$days days before",
+                                        label = pluralStringResource(
+                                            Res.plurals.editor_days_before,
+                                            days,
+                                            days,
+                                        ),
                                         selected = remindDaysBefore == days,
                                         onClick = { remindDaysBefore = days },
                                         accent = accent,
@@ -277,10 +290,10 @@ fun SubscriptionEditorScreen(
                     }
                 }
 
-                FormSection("Paid with") {
+                FormSection(stringResource(Res.string.editor_paid_with)) {
                     if (data.paymentMethods.isEmpty()) {
                         Text(
-                            text = "No payment methods yet.",
+                            text = stringResource(Res.string.editor_no_payment_methods),
                             style = MaterialTheme.typography.bodyMedium,
                             color = AnimaTheme.palette.muted,
                         )
@@ -299,7 +312,7 @@ fun SubscriptionEditorScreen(
                             )
                         }
                         ChoiceChip(
-                            label = "Manage…",
+                            label = stringResource(Res.string.editor_manage),
                             selected = false,
                             onClick = onManagePaymentMethods,
                             modifier = Modifier.padding(bottom = 8.dp),
@@ -307,11 +320,11 @@ fun SubscriptionEditorScreen(
                     }
                 }
 
-                FormSection("Notes") {
+                FormSection(stringResource(Res.string.editor_notes)) {
                     AnimaTextField(
                         value = notes,
                         onValueChange = { notes = it },
-                        placeholder = "Anything worth remembering when you review this",
+                        placeholder = stringResource(Res.string.editor_notes_placeholder),
                         singleLine = false,
                         minLines = 3,
                     )
@@ -325,7 +338,9 @@ fun SubscriptionEditorScreen(
                     .padding(horizontal = 20.dp, vertical = 12.dp),
             ) {
                 PrimaryButton(
-                    label = if (existing == null) "Add subscription" else "Save changes",
+                    label = stringResource(
+                        if (existing == null) Res.string.editor_add else Res.string.editor_save,
+                    ),
                     enabled = canSave,
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
@@ -387,7 +402,7 @@ private fun IconChooser(
             val storedId = iconImages.add(bytes)
             busy = false
             if (storedId == null) {
-                error = "That file could not be read as an image."
+                error = getString(Res.string.editor_image_error)
             } else {
                 onChange(icon.copy(imageId = storedId))
             }
@@ -400,9 +415,12 @@ private fun IconChooser(
                 SubscriptionIcon(icon, accent, size = 52.dp)
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text("Custom image", style = MaterialTheme.typography.titleSmall)
                     Text(
-                        text = "Scaled down to ${ICON_MAX_EDGE}px and stored with your data",
+                        stringResource(Res.string.editor_custom_image),
+                        style = MaterialTheme.typography.titleSmall,
+                    )
+                    Text(
+                        text = stringResource(Res.string.editor_image_body, ICON_MAX_EDGE),
                         style = MaterialTheme.typography.bodySmall,
                         color = AnimaTheme.palette.muted,
                     )
@@ -410,11 +428,13 @@ private fun IconChooser(
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 GhostButton(
-                    label = if (busy) "Optimising…" else "Replace",
+                    label = stringResource(
+                        if (busy) Res.string.editor_optimising else Res.string.editor_replace,
+                    ),
                     onClick = { if (!busy) picker.launch() },
                 )
                 GhostButton(
-                    label = "Use an emoji",
+                    label = stringResource(Res.string.editor_use_emoji),
                     onClick = { onChange(icon.copy(imageId = null)) },
                 )
             }
@@ -427,7 +447,9 @@ private fun IconChooser(
                 onTyped = { onChange(icon.copy(emoji = it)) },
             )
             GhostButton(
-                label = if (busy) "Optimising…" else "Upload an image",
+                label = stringResource(
+                    if (busy) Res.string.editor_optimising else Res.string.editor_upload,
+                ),
                 onClick = { if (!busy) picker.launch() },
                 icon = AnimaIcons.Plus,
             )

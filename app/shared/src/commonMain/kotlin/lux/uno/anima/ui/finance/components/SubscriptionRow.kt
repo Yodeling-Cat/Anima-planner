@@ -17,7 +17,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.datetime.LocalDate
-import lux.uno.anima.finance.formatShort
 import lux.uno.anima.finance.model.Money
 import lux.uno.anima.finance.model.PaymentMethod
 import lux.uno.anima.finance.model.Subscription
@@ -26,11 +25,15 @@ import lux.uno.anima.finance.model.daysUntilRenewal
 import lux.uno.anima.finance.model.daysUntilTrialEnds
 import lux.uno.anima.finance.model.format
 import lux.uno.anima.finance.model.nextRenewal
-import lux.uno.anima.finance.relativeDayLabel
+import lux.uno.anima.resources.*
 import lux.uno.anima.ui.components.AnimaCard
 import lux.uno.anima.ui.components.Pill
 import lux.uno.anima.ui.icons.SubscriptionIcon
+import lux.uno.anima.ui.text.formatShort
+import lux.uno.anima.ui.text.relativeDayLabel
+import lux.uno.anima.ui.text.shortSuffix
 import lux.uno.anima.ui.theme.AnimaTheme
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * One subscription as it appears in a list: icon, name, when it next bills, what it costs.
@@ -66,12 +69,14 @@ fun SubscriptionRow(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    text = when {
-                        !subscription.isActive -> "Paused"
-                        else -> {
-                            val days = subscription.daysUntilRenewal(today)
-                            "${subscription.nextRenewal(today).formatShort(today)} · ${relativeDayLabel(days)}"
-                        }
+                    text = if (!subscription.isActive) {
+                        stringResource(Res.string.sub_paused)
+                    } else {
+                        stringResource(
+                            Res.string.sub_next_renewal,
+                            subscription.nextRenewal(today).formatShort(today),
+                            relativeDayLabel(subscription.daysUntilRenewal(today)),
+                        )
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = AnimaTheme.palette.muted,
@@ -81,7 +86,11 @@ fun SubscriptionRow(
                 if (trialDays != null && trialDays >= 0) {
                     Spacer(Modifier.padding(top = 1.dp))
                     Pill(
-                        text = if (trialDays == 0) "Trial ends today" else "Trial · ${relativeDayLabel(trialDays)}",
+                        text = if (trialDays == 0) {
+                            stringResource(Res.string.sub_trial_ends_today)
+                        } else {
+                            stringResource(Res.string.sub_trial_ends_in, relativeDayLabel(trialDays))
+                        },
                         accent = AnimaTheme.palette.warning,
                     )
                 } else if (paymentMethod != null) {
@@ -103,7 +112,7 @@ fun SubscriptionRow(
                         style = MaterialTheme.typography.titleSmall,
                     )
                     Text(
-                        text = subscription.cycle.shortSuffix,
+                        text = subscription.cycle.shortSuffix(),
                         style = MaterialTheme.typography.bodySmall,
                         color = AnimaTheme.palette.faint,
                     )
@@ -111,7 +120,10 @@ fun SubscriptionRow(
                 // Only shown when the cycle is not already monthly, where it would repeat itself.
                 if (monthlyEquivalent != null) {
                     Text(
-                        text = "≈ ${monthlyEquivalent.format()}/mo",
+                        text = stringResource(
+                            Res.string.sub_monthly_equivalent,
+                            monthlyEquivalent.format(),
+                        ),
                         style = MaterialTheme.typography.bodySmall,
                         color = AnimaTheme.palette.faint,
                         maxLines = 1,

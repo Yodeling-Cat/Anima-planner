@@ -1,0 +1,436 @@
+<resources>
+    <!-- Czech. Plural buckets follow CLDR: one = 1, few = 2..4, other = 0 and 5 upwards. -->
+
+    <string name="common_cancel">Zrušit</string>
+    <string name="common_save">Uložit</string>
+    <string name="common_delete">Smazat</string>
+    <string name="common_keep">Ponechat</string>
+    <string name="common_back">Zpět</string>
+    <string name="common_close">Zavřít</string>
+    <string name="common_apply">Použít</string>
+    <string name="common_reset">Obnovit</string>
+    <string name="common_clear">Vymazat</string>
+    <string name="common_edit">Upravit</string>
+    <string name="common_active">Aktivní</string>
+    <string name="common_not_set">Nenastaveno</string>
+
+    <!-- Genitiv, protože se objevují jen uvnitř data: „12. března 2026“. -->
+    <string-array name="months_long">
+        <item>ledna</item>
+        <item>února</item>
+        <item>března</item>
+        <item>dubna</item>
+        <item>května</item>
+        <item>června</item>
+        <item>července</item>
+        <item>srpna</item>
+        <item>září</item>
+        <item>října</item>
+        <item>listopadu</item>
+        <item>prosince</item>
+    </string-array>
+    <string-array name="months_short">
+        <item>led</item>
+        <item>úno</item>
+        <item>bře</item>
+        <item>dub</item>
+        <item>kvě</item>
+        <item>čvn</item>
+        <item>čvc</item>
+        <item>srp</item>
+        <item>zář</item>
+        <item>říj</item>
+        <item>lis</item>
+        <item>pro</item>
+    </string-array>
+    <string name="date_long">%1$s. %2$s %3$s</string>
+    <string name="date_short">%1$s. %2$s</string>
+    <string name="date_short_with_year">%1$s. %2$s %3$s</string>
+    <string name="date_month_year">%1$s \'%2$s</string>
+
+    <string name="relative_today">dnes</string>
+    <string name="relative_tomorrow">zítra</string>
+    <string name="relative_yesterday">včera</string>
+    <plurals name="relative_in_days">
+        <item quantity="one">za %d den</item>
+        <item quantity="few">za %d dny</item>
+        <item quantity="other">za %d dní</item>
+    </plurals>
+    <plurals name="relative_in_weeks">
+        <item quantity="one">za týden</item>
+        <item quantity="few">za %d týdny</item>
+        <item quantity="other">za %d týdnů</item>
+    </plurals>
+    <plurals name="relative_in_months">
+        <item quantity="one">za měsíc</item>
+        <item quantity="few">za %d měsíce</item>
+        <item quantity="other">za %d měsíců</item>
+    </plurals>
+    <plurals name="relative_days_ago">
+        <item quantity="one">před %d dnem</item>
+        <item quantity="few">před %d dny</item>
+        <item quantity="other">před %d dny</item>
+    </plurals>
+    <plurals name="relative_weeks_ago">
+        <item quantity="one">před týdnem</item>
+        <item quantity="few">před %d týdny</item>
+        <item quantity="other">před %d týdny</item>
+    </plurals>
+    <plurals name="relative_months_ago">
+        <item quantity="one">před měsícem</item>
+        <item quantity="few">před %d měsíci</item>
+        <item quantity="other">před %d měsíci</item>
+    </plurals>
+
+    <string name="billing_daily">Denně</string>
+    <string name="billing_weekly">Týdně</string>
+    <string name="billing_monthly">Měsíčně</string>
+    <string name="billing_yearly">Ročně</string>
+    <plurals name="billing_every_days">
+        <item quantity="one">Každý den</item>
+        <item quantity="few">Každé %d dny</item>
+        <item quantity="other">Každých %d dní</item>
+    </plurals>
+    <plurals name="billing_every_weeks">
+        <item quantity="one">Každý týden</item>
+        <item quantity="few">Každé %d týdny</item>
+        <item quantity="other">Každých %d týdnů</item>
+    </plurals>
+    <plurals name="billing_every_months">
+        <item quantity="one">Každý měsíc</item>
+        <item quantity="few">Každé %d měsíce</item>
+        <item quantity="other">Každých %d měsíců</item>
+    </plurals>
+    <plurals name="billing_every_years">
+        <item quantity="one">Každý rok</item>
+        <item quantity="few">Každé %d roky</item>
+        <item quantity="other">Každých %d let</item>
+    </plurals>
+    <string name="billing_suffix_day">/den</string>
+    <string name="billing_suffix_week">/týd</string>
+    <string name="billing_suffix_month">/měs</string>
+    <string name="billing_suffix_year">/rok</string>
+    <string name="billing_suffix_days">/%1$dd</string>
+    <string name="billing_suffix_weeks">/%1$dt</string>
+    <string name="billing_suffix_months">/%1$dměs</string>
+    <string name="billing_suffix_years">/%1$dr</string>
+
+    <string name="payment_kind_card">Karta</string>
+    <string name="payment_kind_bank">Bankovní účet</string>
+    <string name="payment_kind_wallet">Peněženka</string>
+    <string name="payment_kind_cash">Hotovost</string>
+    <string name="payment_kind_other">Jiné</string>
+
+    <string name="category_uncategorised">Nezařazeno</string>
+    <string name="category_default_entertainment">Zábava</string>
+    <string name="category_default_software">Software</string>
+    <string name="category_default_music">Hudba</string>
+    <string name="category_default_health">Zdraví</string>
+    <string name="category_default_home">Domácnost</string>
+    <string name="category_default_finance">Finance</string>
+    <string name="category_default_learning">Vzdělávání</string>
+    <string name="category_default_transport">Doprava</string>
+
+    <string name="environment_prod_label">Produkce</string>
+    <string name="environment_prod_description">Vaše skutečná data, synchronizovaná s ostrým serverem.</string>
+    <string name="environment_dev_label">Vývoj</string>
+    <string name="environment_dev_description">Samostatná kopie, synchronizovaná se serverem, který si spustíte sami.</string>
+    <string name="environment_local_label">Jen v tomto zařízení</string>
+    <string name="environment_local_description">Pracovní kopie, která nikdy neopustí toto zařízení a nikdy se nesynchronizuje.</string>
+
+    <string name="area_finance_title">Finance</string>
+    <string name="area_finance_tagline">Předplatné, rozpočet, kam to vlastně jde</string>
+    <string name="area_health_title">Zdraví</string>
+    <string name="area_health_tagline">Tělo, spánek, pohyb</string>
+    <string name="area_philosophy_title">Filozofie</string>
+    <string name="area_philosophy_tagline">Otázky, u kterých stojí za to se zastavit</string>
+    <string name="area_religion_title">Náboženství</string>
+    <string name="area_religion_tagline">Praxe, rituál, ztišení</string>
+    <string name="area_fun_title">Zábava</string>
+    <string name="area_fun_tagline">Ta část, která není projekt</string>
+    <string name="coming_soon_not_built">JEŠTĚ NEPOSTAVENO</string>
+
+    <string name="dashboard_eyebrow">ANIMA</string>
+    <string name="dashboard_account">Účet</string>
+    <string name="greeting_still_up">Ještě vzhůru</string>
+    <string name="greeting_morning">Dobré ráno</string>
+    <string name="greeting_afternoon">Dobrý den</string>
+    <string name="greeting_evening">Dobrý večer</string>
+    <string name="dashboard_per_month">měsíčně</string>
+    <plurals name="dashboard_trials_ending">
+        <item quantity="one">%d zkušební verze končí</item>
+        <item quantity="few">%d zkušební verze končí</item>
+        <item quantity="other">%d zkušebních verzí končí</item>
+    </plurals>
+    <plurals name="dashboard_subscription_count">
+        <item quantity="one">%d předplatné</item>
+        <item quantity="few">%d předplatná</item>
+        <item quantity="other">%d předplatných</item>
+    </plurals>
+    <string name="dashboard_glance_with_next">%1$s · %2$s</string>
+    <string name="dashboard_next_charge">%1$s %2$s</string>
+
+    <string name="account_title">Účet</string>
+    <string name="account_no_server_body">Toto prostředí drží všechno v tomto zařízení a nikdy se nesynchronizuje, takže tu není do čeho se přihlašovat.</string>
+    <string name="account_sign_in">Přihlášení</string>
+    <string name="account_sign_in_body">Vaše předplatná už v tomto zařízení jsou. Přihlášení slouží k tomu, aby byla stejná i na ostatních.</string>
+    <string name="account_email">E-mail</string>
+    <string name="account_email_placeholder">vy@priklad.cz</string>
+    <string name="account_password">Heslo</string>
+    <string name="account_working">Pracuji…</string>
+    <string name="account_create">Vytvořit účet</string>
+    <string name="account_signing_in_to">Přihlašujete se na %1$s</string>
+    <string name="account_signed_in">Přihlášeno</string>
+    <string name="account_sign_out">Odhlásit se</string>
+    <string name="account_sign_out_body">Ukončí relaci v tomto zařízení. Vaše předplatná tu zůstávají, dokud nepožádáte o jejich odstranění.</string>
+    <string name="account_sync">Synchronizace</string>
+    <string name="account_sync_now">Synchronizovat nyní</string>
+    <string name="account_sign_out_title">Odhlásit se?</string>
+    <string name="account_sign_out_dialog_body">Vaše předplatná zůstanou v tomto zařízení a e-mailová adresa se zapamatuje, takže při dalším přihlášení stačí zadat heslo.</string>
+    <plurals name="account_sign_out_pending">
+        <item quantity="one">%d změna se ještě nedostala na server. Když ji teď odstraníte, přijdete o ni.</item>
+        <item quantity="few">%d změny se ještě nedostaly na server. Když je teď odstraníte, přijdete o ně.</item>
+        <item quantity="other">%d změn se ještě nedostalo na server. Když je teď odstraníte, přijdete o ně.</item>
+    </plurals>
+    <string name="account_sign_out_keep_data">Odhlásit a ponechat data</string>
+    <string name="account_remove_data">Odstranit data</string>
+    <string name="account_error_rejected">Tento e-mail a heslo neodpovídají žádnému účtu.</string>
+    <string name="account_error_registration_closed">Tento server nepřijímá nové účty. Požádejte jeho správce o přístupové heslo, nebo se přihlaste existujícím účtem.</string>
+    <string name="account_error_wrong_join_password">Přístupové heslo je špatně. Nastavuje se ve vývojářské obrazovce pod adresou serveru a jeho správce vám řekne, jaké má být.</string>
+    <string name="account_error_unreachable">Server se nepodařilo kontaktovat. Zkontrolujte adresu ve vývojářské obrazovce, nebo to zkuste znovu, až budete online.</string>
+
+    <string name="sync_headline_syncing">Synchronizuji</string>
+    <string name="sync_headline_failed">Poslední pokus selhal</string>
+    <string name="sync_headline_offline">Server je nedostupný</string>
+    <string name="sync_headline_signed_out">Odhlášeno</string>
+    <string name="sync_headline_up_to_date">Vše je aktuální</string>
+    <plurals name="sync_headline_pending">
+        <item quantity="one">%d čeká na odeslání</item>
+        <item quantity="few">%d čekají na odeslání</item>
+        <item quantity="other">%d čeká na odeslání</item>
+    </plurals>
+    <string name="sync_detail_syncing">Odesílám a sbírám změny.</string>
+    <string name="sync_detail_failed">Server odpověděl a výměnu odmítl. Nic se tu neztratilo.</string>
+    <string name="sync_detail_offline">Všechno funguje dál. Změny zůstávají tady a odejdou, až bude server znovu dostupný.</string>
+    <string name="sync_detail_pending">Změny udělané tady se ještě nedostaly na server.</string>
+    <string name="sync_detail_up_to_date">Všechno odsud se dostalo na server.</string>
+    <string name="sync_detail_never_syncs">Toto prostředí se nikdy nesynchronizuje, takže není s čím být aktuální.</string>
+    <string name="sync_detail_offline_short">Úpravy zůstávají tady a odejdou, až bude server znovu dostupný. Nic se neztrácí.</string>
+    <string name="sync_detail_signed_out">Pro toto prostředí není žádná relace. Všechno funguje offline; přihlásit se z aplikace zatím nejde.</string>
+    <string name="sync_detail_failed_short">Něco odpovědělo a výměnu odmítlo.</string>
+    <string name="sync_detail_idle">Změny se odesílají krátce po každé úpravě.</string>
+
+    <string name="developer_title">Vývojář</string>
+    <string name="developer_environment">Prostředí</string>
+    <string name="developer_environment_body">Každé prostředí si v tomto zařízení drží vlastní data. Přepnutí mezi nimi nikdy nic nekopíruje a nic nemaže.</string>
+    <string name="developer_server">Server</string>
+    <string name="developer_no_server_body">Toto prostředí záměrně nemá server. Nic, co drží, nemůže opustit zařízení.</string>
+    <string name="developer_this_environment">Toto prostředí</string>
+    <string name="developer_data_file">Datový soubor</string>
+    <string name="developer_icons">Ikony</string>
+    <string name="developer_subscriptions">Předplatná</string>
+    <string name="developer_payment_methods">Platební metody</string>
+    <string name="developer_categories">Kategorie</string>
+    <string name="developer_sync">Synchronizace</string>
+    <string name="developer_status">Stav</string>
+    <string name="developer_shake_title">Otevření této obrazovky</string>
+    <string name="developer_shake_body">Toto zařízení nemá akcelerometr, takže gesto zatřesením není k dispozici. Obrazovku místo toho otevře Ctrl+Shift+D.</string>
+    <string name="developer_address">Adresa</string>
+    <string name="developer_address_body">Nechte prázdné pro návrat k vestavěné adrese. Telefon nedosáhne na notebook se serverem přes \"localhost\" — použijte jeho adresu v síti.</string>
+    <string name="developer_join_password">Přístupové heslo</string>
+    <string name="developer_join_password_placeholder">Potřeba jen při vytvoření účtu</string>
+    <string name="developer_join_password_body">Soukromý server o něj žádá nové uživatele. Jeho správce vám řekne, jaké je. Není to heslo k vašemu účtu a používá se jen při vytváření účtu — k přihlášení potom nikdy není třeba.</string>
+
+    <string name="color_picker_title">Vyberte barvu</string>
+    <string name="color_picker_hex">Hex</string>
+    <string name="color_picker_hex_placeholder">6C7BFF</string>
+    <string name="color_picker_confirm">Použít tuto barvu</string>
+    <string name="color_picker_custom">Vlastní barva</string>
+    <string name="date_field_choose">Vybrat</string>
+    <string name="emoji_icon_label">Ikona</string>
+
+    <string name="finance_title">Finance</string>
+    <string name="finance_categories">Kategorie</string>
+    <string name="finance_payment_methods">Platební metody</string>
+    <string name="finance_add">Přidat</string>
+    <string name="finance_empty_title">Zatím nic nesledujete</string>
+    <string name="finance_empty_body">Přidejte věci, které vám tiše účtují každý měsíc, a tahle obrazovka vám začne říkat, kam peníze jdou.</string>
+    <string name="finance_empty_action">Přidat předplatné</string>
+    <string name="finance_section_cards">Karty</string>
+    <string name="finance_section_trials">Zkušební verze</string>
+    <string name="finance_section_coming_up">Blíží se</string>
+    <string name="finance_section_where_it_goes">Kam to jde</string>
+    <string name="finance_section_subscriptions">Předplatná</string>
+    <string name="finance_section_paused">Pozastavená</string>
+    <string name="finance_monthly_outflow">MĚSÍČNÍ ODLIV</string>
+    <plurals name="finance_active_count">
+        <item quantity="one">%d aktivní předplatné</item>
+        <item quantity="few">%d aktivní předplatná</item>
+        <item quantity="other">%d aktivních předplatných</item>
+    </plurals>
+    <string name="finance_total_line">%1$s ročně · %2$s</string>
+    <string name="finance_monthly_pill">%1$s/měs</string>
+    <string name="finance_trial_ends_today">Zkušební verze končí dnes</string>
+    <string name="finance_trial_ends_tomorrow">Zkušební verze končí zítra</string>
+    <string name="finance_trial_ends_in">Zkušební verze končí %1$s</string>
+    <string name="finance_then_price">potom %1$s%2$s</string>
+    <string name="sort_upcoming">Nejbližší</string>
+    <string name="sort_cost">Cena</string>
+    <string name="sort_name">Název</string>
+
+    <string name="sub_paused">Pozastaveno</string>
+    <string name="sub_next_renewal">%1$s · %2$s</string>
+    <string name="sub_trial_ends_today">Zkušební verze končí dnes</string>
+    <string name="sub_trial_ends_in">Zkušební · %1$s</string>
+    <string name="sub_monthly_equivalent">≈ %1$s/měs</string>
+
+    <string name="expiry_expired_short">Vypršela %1$s</string>
+    <string name="expiry_expired_full">Vypršela %1$s</string>
+    <string name="expiry_today_short">Vyprší dnes</string>
+    <string name="expiry_today_full">Dnes je poslední den, kdy tahle karta funguje</string>
+    <string name="expiry_soon_short">Vyprší %1$s</string>
+    <string name="expiry_soon_full">Vyprší %1$s, %2$s</string>
+    <string name="expiry_later_short">Vyprší %1$s</string>
+    <string name="expiry_later_full">Vyprší %1$s</string>
+
+    <string name="payment_methods_title">Platební metody</string>
+    <string name="payment_methods_add">Přidat</string>
+    <string name="payment_methods_empty_title">Žádné platební metody</string>
+    <string name="payment_methods_empty_body">Přidejte karty a účty, ze kterých platíte, a každé předplatné pak může říct, který z nich zatěžuje.</string>
+    <string name="payment_methods_empty_action">Přidat jednu</string>
+    <string name="payment_method_unused">%1$s · zatím nepoužito</string>
+    <plurals name="payment_method_used">
+        <item quantity="one">%1$s · %2$d předplatné</item>
+        <item quantity="few">%1$s · %2$d předplatná</item>
+        <item quantity="other">%1$s · %2$d předplatných</item>
+    </plurals>
+    <string name="payment_method_delete_description">Smazat %1$s</string>
+    <string name="payment_method_delete_title">Smazat %1$s?</string>
+    <string name="payment_method_delete_unused">Nic přes ni neplatí.</string>
+    <plurals name="payment_method_delete_used">
+        <item quantity="one">%d předplatné zůstane bez platební metody.</item>
+        <item quantity="few">%d předplatná zůstanou bez platební metody.</item>
+        <item quantity="other">%d předplatných zůstane bez platební metody.</item>
+    </plurals>
+    <string name="payment_method_new">Nová platební metoda</string>
+    <string name="payment_method_edit">Upravit %1$s</string>
+    <string name="payment_method_name">Název</string>
+    <string name="payment_method_name_placeholder">Osobní Visa</string>
+    <string name="payment_method_last4">Poslední čtyři číslice (nepovinné)</string>
+    <string name="payment_method_last4_placeholder">4417</string>
+    <string name="payment_method_expiry">Platnost do (nepovinné)</string>
+    <string name="payment_method_expiry_placeholder">MM/RR</string>
+    <string name="expiry_hint_incomplete">Čtyři číslice, nejdřív měsíc — 09/26.</string>
+    <string name="expiry_hint_none">Doplňte ji a Anima vám připomene měsíc předtím, než karta přestane fungovat.</string>
+    <string name="expiry_hint_expired">Tahle karta vypršela %1$s.</string>
+    <string name="expiry_hint_soon">Funguje do %1$s. V ten den vám to připomeneme.</string>
+    <string name="expiry_hint_future">Připomeneme vám to %1$s a pak znovu %2$s.</string>
+    <string name="expiry_hint_no_notifications">%1$s Oznámení jsou vypnutá, takže se to ukáže jen v aplikaci.</string>
+
+    <string name="categories_title">Kategorie</string>
+    <string name="categories_new">Nová kategorie</string>
+    <string name="categories_empty_title">Žádné kategorie</string>
+    <string name="categories_empty_body">Z kategorií je postavený rozpis \"kam to jde\". Přidejte ty, které odpovídají tomu, jak o výdajích doopravdy přemýšlíte.</string>
+    <string name="categories_empty_action">Přidat jednu</string>
+    <string name="categories_nothing_in_it">Zatím v ní nic není</string>
+    <plurals name="categories_used">
+        <item quantity="one">%d předplatné</item>
+        <item quantity="few">%d předplatná</item>
+        <item quantity="other">%d předplatných</item>
+    </plurals>
+    <string name="category_delete_description">Smazat %1$s</string>
+    <string name="category_delete_title">Smazat %1$s?</string>
+    <string name="category_delete_unused">Nic pod ní není zařazeno.</string>
+    <plurals name="category_delete_used">
+        <item quantity="one">%d předplatné se stane nezařazeným. Nic jiného se na něm nemění.</item>
+        <item quantity="few">%d předplatná se stanou nezařazenými. Nic jiného se na nich nemění.</item>
+        <item quantity="other">%d předplatných se stane nezařazenými. Nic jiného se na nich nemění.</item>
+    </plurals>
+    <string name="category_edit">Upravit %1$s</string>
+    <string name="category_name">Název</string>
+    <string name="category_name_placeholder">Káva</string>
+
+    <string name="detail_pause">Pozastavit</string>
+    <string name="detail_resume">Obnovit</string>
+    <string name="detail_price_history">Historie ceny</string>
+    <string name="detail_record_change">Zaznamenat změnu</string>
+    <string name="detail_details">Podrobnosti</string>
+    <string name="detail_next_charge">Nejbližší platba</string>
+    <string name="detail_that_is">To je</string>
+    <string name="detail_billing">Fakturace</string>
+    <string name="detail_tracking_since">Sledováno od</string>
+    <string name="detail_paid_with">Placeno přes</string>
+    <string name="detail_category">Kategorie</string>
+    <string name="detail_notes">Poznámky</string>
+    <string name="detail_delete_title">Smazat %1$s?</string>
+    <string name="detail_delete_body">Historie ceny zmizí s ním. Tohle se nedá vrátit.</string>
+    <string name="detail_yearly">%1$s ročně</string>
+    <string name="detail_monthly_and_yearly">%1$s měsíčně · %2$s ročně</string>
+    <string name="detail_one_price">Zatím je zaznamenaná jedna cena. Zapište další změnu a vznikne z toho trend.</string>
+    <string name="detail_same_price">Stejná cena jako na začátku</string>
+    <string name="detail_up_since">Od začátku nahoru o %1$s</string>
+    <string name="detail_down_since">Od začátku dolů o %1$s</string>
+    <string name="detail_price_from_to">%1$s dne %2$s → %3$s</string>
+    <string name="detail_takes_effect">Platí od %1$s</string>
+    <string name="detail_remove_price_point">Odstranit tento cenový bod</string>
+    <string name="detail_trial">ZKUŠEBNÍ VERZE</string>
+    <string name="detail_trial_ended">Zkušební verze skončila %1$s</string>
+    <string name="detail_trial_ends_today">Zkušební verze končí dnes</string>
+    <string name="detail_trial_ends_on">Zkušební verze končí %1$s, tedy %2$s</string>
+    <plurals name="detail_trial_reminder">
+        <item quantity="one">Připomeneme vám to %1$d den předtím, než se změní na %2$s%3$s.</item>
+        <item quantity="few">Připomeneme vám to %1$d dny předtím, než se změní na %2$s%3$s.</item>
+        <item quantity="other">Připomeneme vám to %1$d dní předtím, než se změní na %2$s%3$s.</item>
+    </plurals>
+    <string name="detail_end_trial">Zkušební verze skončila — je to placený plán</string>
+    <string name="detail_record_price_title">Zaznamenat změnu ceny</string>
+    <string name="detail_new_price">Nová cena</string>
+    <string name="detail_price_placeholder">0,00</string>
+    <string name="detail_effective_from">Platné od</string>
+    <string name="detail_why">Proč (nepovinné)</string>
+    <string name="detail_why_placeholder">Každoroční zdražení</string>
+    <string name="chart_today">dnes</string>
+
+    <string name="editor_new">Nové předplatné</string>
+    <string name="editor_edit">Upravit %1$s</string>
+    <string name="editor_what_is_it">Co to je</string>
+    <string name="editor_name">Název</string>
+    <string name="editor_name_placeholder">Netflix</string>
+    <string name="editor_category">Kategorie</string>
+    <string name="editor_new_category">Nová…</string>
+    <string name="editor_manage">Spravovat…</string>
+    <string name="editor_what_it_costs">Kolik stojí</string>
+    <string name="editor_amount">Částka</string>
+    <string name="editor_amount_placeholder">0,00</string>
+    <string name="editor_price_note">Změna částky tady opraví dnešní cenu. Pokud chcete v historii nechat i starou cenu, použijte raději \"Zaznamenat změnu\" na obrazovce s podrobnostmi.</string>
+    <string name="editor_how_often">Jak často</string>
+    <string name="editor_next_charge">Nejbližší platba</string>
+    <string name="editor_trial">Zkušební verze</string>
+    <string name="editor_is_trial">Tohle je zkušební verze</string>
+    <string name="editor_is_trial_subtitle">Anima to označí dřív, než se bezplatné období změní na placené</string>
+    <string name="editor_trial_ends">Zkušební verze končí</string>
+    <string name="editor_remind_me">PŘIPOMENOUT</string>
+    <plurals name="editor_days_before">
+        <item quantity="one">%d den předem</item>
+        <item quantity="few">%d dny předem</item>
+        <item quantity="other">%d dní předem</item>
+    </plurals>
+    <string name="editor_paid_with">Placeno přes</string>
+    <string name="editor_no_payment_methods">Zatím žádné platební metody.</string>
+    <string name="editor_notes">Poznámky</string>
+    <string name="editor_notes_placeholder">Cokoli, co stojí za zapamatování, až se na to podíváte znovu</string>
+    <string name="editor_add">Přidat předplatné</string>
+    <string name="editor_save">Uložit změny</string>
+    <string name="editor_image_error">Tenhle soubor se nepodařilo načíst jako obrázek.</string>
+    <string name="editor_custom_image">Vlastní obrázek</string>
+    <string name="editor_image_body">Zmenšeno na %1$dpx a uloženo s vašimi daty</string>
+    <string name="editor_optimising">Optimalizuji…</string>
+    <string name="editor_replace">Nahradit</string>
+    <string name="editor_use_emoji">Použít emoji</string>
+    <string name="editor_upload">Nahrát obrázek</string>
+
+    <string name="reminder_card_expiring_title">%1$s vyprší za měsíc</string>
+    <string name="reminder_card_expiring_body">Po %1$s přestane fungovat. Objednejte si náhradu teď, aby nic, co platíte, neselhalo.</string>
+    <string name="reminder_card_today_title">%1$s vyprší dnes</string>
+    <string name="reminder_card_today_body">Dnes je poslední den, kdy funguje. Aktualizujte každé předplatné, které se z ní platí.</string>
+</resources>

@@ -33,10 +33,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import lux.uno.anima.resources.*
 import lux.uno.anima.ui.theme.AnimaTheme
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * A saturation/value field over a hue strip, plus a hex field for people who already know
@@ -68,7 +70,7 @@ fun ColorPickerDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Pick a colour") },
+        title = { Text(stringResource(Res.string.color_picker_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 SaturationValueField(
@@ -99,16 +101,16 @@ fun ColorPickerDialog(
                                 value = parsed.value
                             }
                         },
-                        label = "Hex",
-                        placeholder = "6C7BFF",
+                        label = stringResource(Res.string.color_picker_hex),
+                        placeholder = stringResource(Res.string.color_picker_hex_placeholder),
                         prefix = "#",
                         modifier = Modifier.weight(1f),
                     )
                 }
             }
         },
-        confirmButton = { TextButton(onClick = { onConfirm(argb) }) { Text("Use this colour") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        confirmButton = { TextButton(onClick = { onConfirm(argb) }) { Text(stringResource(Res.string.color_picker_confirm)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.common_cancel)) } },
     )
 }
 

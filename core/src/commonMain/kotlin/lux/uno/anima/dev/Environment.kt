@@ -12,10 +12,12 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class AppEnvironment(
+    /**
+     * Identifies the environment everywhere — in the stored choice, and in the UI, which
+     * maps it to a name and a description in the reader's language. There is deliberately
+     * no wording here: core has no language.
+     */
     val id: String,
-    val label: String,
-    /** What the switch actually does, in the words of someone about to tap it. */
-    val description: String,
     /** Null means this environment never syncs; the device is the only copy. */
     val serverUrl: String?,
     /**
@@ -52,16 +54,12 @@ object Environments {
 
     val Production = AppEnvironment(
         id = "prod",
-        label = "Production",
-        description = "Your real data, synced to the live server.",
         serverUrl = "https://anima.lux.uno",
         storageSuffix = "",
     )
 
     val Development = AppEnvironment(
         id = "dev",
-        label = "Development",
-        description = "A separate copy, synced to a server you are running.",
         // Points at the machine running the server by default, which on the Android
         // emulator is not localhost — see localhostForDevelopment().
         serverUrl = "http://${localhostForDevelopment()}:8080",
@@ -70,8 +68,6 @@ object Environments {
 
     val Sandbox = AppEnvironment(
         id = "local",
-        label = "On device only",
-        description = "A scratch copy that never leaves this device and never syncs.",
         serverUrl = null,
         storageSuffix = "-local",
     )

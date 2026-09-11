@@ -36,13 +36,13 @@ import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.minus
 import lux.uno.anima.finance.FinanceData
-import lux.uno.anima.finance.formatLong
 import lux.uno.anima.finance.model.CardExpiry
 import lux.uno.anima.finance.model.toDigits
 import lux.uno.anima.finance.reminders.CARD_EXPIRY_WARNING_MONTHS
 import lux.uno.anima.finance.model.PaymentMethod
 import lux.uno.anima.finance.model.PaymentMethodKind
 import lux.uno.anima.platform.newId
+import lux.uno.anima.resources.*
 import lux.uno.anima.ui.components.AccentSwatches
 import lux.uno.anima.ui.components.AnimaCard
 import lux.uno.anima.ui.components.AnimaTextField
@@ -57,10 +57,14 @@ import lux.uno.anima.ui.components.Pill
 import lux.uno.anima.ui.components.ScreenSurface
 import lux.uno.anima.ui.finance.components.color
 import lux.uno.anima.ui.finance.components.expiryStatus
+import lux.uno.anima.ui.text.formatLong
+import lux.uno.anima.ui.text.label
 import lux.uno.anima.ui.theme.AnimaIcons
 import lux.uno.anima.ui.theme.AnimaTheme
 import androidx.compose.runtime.saveable.rememberSaveable
 import lux.uno.anima.ui.components.enumSaver
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 
 /** Manage the cards and accounts subscriptions are charged to. */
 @Composable
@@ -88,18 +92,29 @@ fun PaymentMethodsScreen(
     ScreenSurface(modifier) { contentModifier ->
         Column(contentModifier.safeDrawingPadding().fillMaxSize()) {
             AnimaTopBar(
-                title = "Payment methods",
+                title = stringResource(Res.string.payment_methods_title),
                 onBack = onBack,
-                actions = { IconAction(AnimaIcons.Plus, "Add", { creating = true }) },
+                actions = {
+                    IconAction(
+                        AnimaIcons.Plus,
+                        stringResource(Res.string.payment_methods_add),
+                        { creating = true },
+                    )
+                },
             )
 
             if (data.paymentMethods.isEmpty()) {
                 EmptyState(
                     glyph = "💳",
-                    title = "No payment methods",
-                    body = "Add the cards and accounts you pay from, and every subscription can "
-                        + "say which one it hits.",
-                    action = { PrimaryButton("Add one", { creating = true }, icon = AnimaIcons.Plus) },
+                    title = stringResource(Res.string.payment_methods_empty_title),
+                    body = stringResource(Res.string.payment_methods_empty_body),
+                    action = {
+                        PrimaryButton(
+                            stringResource(Res.string.payment_methods_empty_action),
+                            { creating = true },
+                            icon = AnimaIcons.Plus,
+                        )
+                    },
                 )
                 return@Column
             }
@@ -124,10 +139,18 @@ fun PaymentMethodsScreen(
                             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                 Text(method.displayName, style = MaterialTheme.typography.titleSmall)
                                 Text(
-                                    text = when (used) {
-                                        0 -> "${method.kind.label} · not used yet"
-                                        1 -> "${method.kind.label} · 1 subscription"
-                                        else -> "${method.kind.label} · $used subscriptions"
+                                    text = if (used == 0) {
+                                        stringResource(
+                                            Res.string.payment_method_unused,
+                                            method.kind.label(),
+                                        )
+                                    } else {
+                                        pluralStringResource(
+                                            Res.plurals.payment_method_used,
+                                            used,
+                                            method.kind.label(),
+                                            used,
+                                        )
                                     },
                                     style = MaterialTheme.typography.bodySmall,
                                     color = AnimaTheme.palette.muted,
@@ -139,7 +162,10 @@ fun PaymentMethodsScreen(
                             }
                             IconAction(
                                 icon = AnimaIcons.Trash,
-                                contentDescription = "Delete ${method.name}",
+                                contentDescription = stringResource(
+                                    Res.string.payment_method_delete_description,
+                                    method.name,
+                                ),
                                 onClick = { pendingDeleteId = method.id },
                                 tint = AnimaTheme.palette.faint,
                             )
@@ -168,19 +194,31 @@ fun PaymentMethodsScreen(
         val used = usageCount[method.id] ?: 0
         AlertDialog(
             onDismissRequest = { pendingDeleteId = null },
-            title = { Text("Delete ${method.name}?") },
+            title = {
+                Text(stringResource(Res.string.payment_method_delete_title, method.name))
+            },
             text = {
                 Text(
-                    if (used == 0) "Nothing is paying through it."
-                    else "$used subscription${if (used == 1) "" else "s"} will be left without a payment method.",
+                    if (used == 0) {
+                        stringResource(Res.string.payment_method_delete_unused)
+                    } else {
+                        pluralStringResource(Res.plurals.payment_method_delete_used, used, used)
+                    },
                 )
             },
             confirmButton = {
                 TextButton(onClick = { onDelete(method.id); pendingDeleteId = null }) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                    Text(
+                        stringResource(Res.string.common_delete),
+                        color = MaterialTheme.colorScheme.error,
+                    )
                 }
             },
-            dismissButton = { TextButton(onClick = { pendingDeleteId = null }) { Text("Keep") } },
+            dismissButton = {
+                TextButton(onClick = { pendingDeleteId = null }) {
+                    Text(stringResource(Res.string.common_keep))
+                }
+            },
         )
     }
 }
@@ -207,7 +245,15 @@ private fun PaymentMethodDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (existing == null) "New payment method" else "Edit ${existing.name}") },
+        title = {
+            Text(
+                if (existing == null) {
+                    stringResource(Res.string.payment_method_new)
+                } else {
+                    stringResource(Res.string.payment_method_edit, existing.name)
+                },
+            )
+        },
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
@@ -216,13 +262,13 @@ private fun PaymentMethodDialog(
                 AnimaTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = "Name",
-                    placeholder = "Personal Visa",
+                    label = stringResource(Res.string.payment_method_name),
+                    placeholder = stringResource(Res.string.payment_method_name_placeholder),
                 )
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     PaymentMethodKind.entries.forEach { option ->
                         ChoiceChip(
-                            label = option.label,
+                            label = option.label(),
                             selected = kind == option,
                             onClick = { kind = option },
                             leading = option.glyph,
@@ -234,8 +280,8 @@ private fun PaymentMethodDialog(
                 AnimaTextField(
                     value = last4,
                     onValueChange = { last4 = it.filter(Char::isDigit).take(4) },
-                    label = "Last four digits (optional)",
-                    placeholder = "4417",
+                    label = stringResource(Res.string.payment_method_last4),
+                    placeholder = stringResource(Res.string.payment_method_last4_placeholder),
                     keyboardType = KeyboardType.Number,
                 )
                 if (kind == PaymentMethodKind.CARD) {
@@ -271,9 +317,11 @@ private fun PaymentMethodDialog(
                         ),
                     )
                 },
-            ) { Text("Save") }
+            ) { Text(stringResource(Res.string.common_save)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(Res.string.common_cancel)) }
+        },
     )
 }
 
@@ -294,8 +342,8 @@ private fun CardExpiryField(
         AnimaTextField(
             value = digits,
             onValueChange = { onDigitsChange(it.filter(Char::isDigit).take(4)) },
-            label = "Expires (optional)",
-            placeholder = "MM/YY",
+            label = stringResource(Res.string.payment_method_expiry),
+            placeholder = stringResource(Res.string.payment_method_expiry_placeholder),
             keyboardType = KeyboardType.Number,
             visualTransformation = ExpiryVisualTransformation,
         )
@@ -329,26 +377,30 @@ private val ExpiryVisualTransformation = VisualTransformation { text ->
     )
 }
 
+@Composable
 private fun expiryHelpText(
     expiry: CardExpiry?,
     incomplete: Boolean,
     today: LocalDate,
     notificationsEnabled: Boolean,
 ): String {
-    if (incomplete) return "Four digits, month first — 09/26."
-    if (expiry == null) {
-        return "Add it and Anima reminds you a month before the card stops working."
-    }
+    if (incomplete) return stringResource(Res.string.expiry_hint_incomplete)
+    if (expiry == null) return stringResource(Res.string.expiry_hint_none)
 
     val expiresOn = expiry.lastValidDay
     val warnOn = expiresOn.minus(CARD_EXPIRY_WARNING_MONTHS, DateTimeUnit.MONTH)
     val schedule = when {
-        expiresOn < today -> "This card expired on ${expiresOn.formatLong()}."
-        warnOn <= today -> "Works until ${expiresOn.formatLong()}. You will be reminded on the day."
-        else -> "You will be reminded on ${warnOn.formatLong()}, " +
-            "then again on ${expiresOn.formatLong()}."
+        expiresOn < today ->
+            stringResource(Res.string.expiry_hint_expired, expiresOn.formatLong())
+        warnOn <= today ->
+            stringResource(Res.string.expiry_hint_soon, expiresOn.formatLong())
+        else -> stringResource(
+            Res.string.expiry_hint_future,
+            warnOn.formatLong(),
+            expiresOn.formatLong(),
+        )
     }
 
     return if (notificationsEnabled) schedule
-    else "$schedule Notifications are switched off, so it will only show up inside the app."
+    else stringResource(Res.string.expiry_hint_no_notifications, schedule)
 }

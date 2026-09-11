@@ -1,0 +1,4 @@
+<resources>
+    <string name="anima_reminder_channel_name">Pripomienky</string>
+    <string name="anima_reminder_channel_description">Expirácia kariet a ďalšie pripomienky s dátumom</string>
+</resources>

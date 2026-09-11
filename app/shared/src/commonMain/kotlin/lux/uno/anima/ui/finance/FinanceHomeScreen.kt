@@ -36,7 +36,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.clickable
 import kotlinx.datetime.LocalDate
 import lux.uno.anima.finance.FinanceData
-import lux.uno.anima.finance.formatShort
 import lux.uno.anima.finance.model.BillingPeriod
 import lux.uno.anima.finance.model.CurrencyTotal
 import lux.uno.anima.finance.model.PaymentMethod
@@ -50,7 +49,7 @@ import lux.uno.anima.finance.model.daysUntilTrialEnds
 import lux.uno.anima.finance.model.format
 import lux.uno.anima.finance.model.monthlyCost
 import lux.uno.anima.finance.model.nextRenewal
-import lux.uno.anima.finance.relativeDayLabel
+import lux.uno.anima.resources.*
 import lux.uno.anima.ui.components.AnimaCard
 import lux.uno.anima.ui.components.AnimaTopBar
 import lux.uno.anima.ui.components.ChoiceChip
@@ -67,17 +66,28 @@ import lux.uno.anima.ui.finance.components.SubscriptionRow
 import lux.uno.anima.ui.finance.components.color
 import lux.uno.anima.ui.finance.components.expiryStatus
 import lux.uno.anima.ui.icons.SubscriptionIcon
+import lux.uno.anima.ui.text.displayLabel
+import lux.uno.anima.ui.text.formatShort
+import lux.uno.anima.ui.text.relativeDayLabel
+import lux.uno.anima.ui.text.shortSuffix
 import lux.uno.anima.ui.theme.AnimaIcons
 import lux.uno.anima.ui.theme.AnimaTheme
 import lux.uno.anima.ui.theme.EyebrowStyle
 import androidx.compose.runtime.saveable.rememberSaveable
 import lux.uno.anima.ui.components.enumSaver
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 
 /** How the main list is ordered. Defaults to what bills next, which is what people ask first. */
-enum class SubscriptionSort(val label: String) {
-    UPCOMING("Upcoming"),
-    COST("Cost"),
-    NAME("Name"),
+enum class SubscriptionSort(private val labelRes: StringResource) {
+    UPCOMING(Res.string.sort_upcoming),
+    COST(Res.string.sort_cost),
+    NAME(Res.string.sort_name);
+
+    val label: String
+        @Composable
+        get() = stringResource(labelRes)
 }
 
 @Composable
@@ -116,22 +126,33 @@ fun FinanceHomeScreen(
         Box(contentModifier.safeDrawingPadding().fillMaxSize()) {
             Column(Modifier.fillMaxSize()) {
                 AnimaTopBar(
-                    title = "Finance",
+                    title = stringResource(Res.string.finance_title),
                     onBack = onBack,
                     actions = {
-                        IconAction(AnimaIcons.Sliders, "Categories", onOpenCategories)
-                        IconAction(AnimaIcons.Card, "Payment methods", onOpenPaymentMethods)
+                        IconAction(
+                            AnimaIcons.Sliders,
+                            stringResource(Res.string.finance_categories),
+                            onOpenCategories,
+                        )
+                        IconAction(
+                            AnimaIcons.Card,
+                            stringResource(Res.string.finance_payment_methods),
+                            onOpenPaymentMethods,
+                        )
                     },
                 )
 
                 if (data.subscriptions.isEmpty()) {
                     EmptyState(
                         glyph = "🪙",
-                        title = "Nothing tracked yet",
-                        body = "Add the things that quietly bill you every month, and this screen "
-                            + "starts telling you where the money goes.",
+                        title = stringResource(Res.string.finance_empty_title),
+                        body = stringResource(Res.string.finance_empty_body),
                         action = {
-                            PrimaryButton("Add a subscription", onAddSubscription, icon = AnimaIcons.Plus)
+                            PrimaryButton(
+                                stringResource(Res.string.finance_empty_action),
+                                onAddSubscription,
+                                icon = AnimaIcons.Plus,
+                            )
                         },
                     )
                     return@Column
@@ -146,7 +167,7 @@ fun FinanceHomeScreen(
 
                     if (cardAlerts.isNotEmpty()) {
                         item { Spacer(Modifier.height(6.dp)) }
-                        item { SectionHeader("Cards") }
+                        item { SectionHeader(stringResource(Res.string.finance_section_cards)) }
                         items(cardAlerts, key = { "card-${it.id}" }) { method ->
                             CardExpiryCard(method, today, onOpenPaymentMethods)
                         }
@@ -154,7 +175,7 @@ fun FinanceHomeScreen(
 
                     if (overview.trialsEndingSoon.isNotEmpty()) {
                         item { Spacer(Modifier.height(6.dp)) }
-                        item { SectionHeader("Trials") }
+                        item { SectionHeader(stringResource(Res.string.finance_section_trials)) }
                         items(overview.trialsEndingSoon, key = { "trial-${it.id}" }) { subscription ->
                             TrialCard(subscription, today) { onOpenSubscription(subscription.id) }
                         }
@@ -162,7 +183,7 @@ fun FinanceHomeScreen(
 
                     if (overview.upcoming.isNotEmpty()) {
                         item { Spacer(Modifier.height(6.dp)) }
-                        item { SectionHeader("Coming up") }
+                        item { SectionHeader(stringResource(Res.string.finance_section_coming_up)) }
                         item {
                             AnimaCard(contentPadding = PaddingValues(vertical = 4.dp)) {
                                 Column {
@@ -176,13 +197,13 @@ fun FinanceHomeScreen(
 
                     if (overview.categories.size > 1) {
                         item { Spacer(Modifier.height(6.dp)) }
-                        item { SectionHeader("Where it goes") }
+                        item { SectionHeader(stringResource(Res.string.finance_section_where_it_goes)) }
                         item { CategoryBreakdown(overview.categories.take(5)) }
                     }
 
                     item { Spacer(Modifier.height(6.dp)) }
                     item {
-                        SectionHeader("Subscriptions") {
+                        SectionHeader(stringResource(Res.string.finance_section_subscriptions)) {
                             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                 SubscriptionSort.entries.forEach { option ->
                                     ChoiceChip(
@@ -207,7 +228,7 @@ fun FinanceHomeScreen(
 
                     if (paused.isNotEmpty()) {
                         item { Spacer(Modifier.height(6.dp)) }
-                        item { SectionHeader("Paused") }
+                        item { SectionHeader(stringResource(Res.string.finance_section_paused)) }
                         items(paused, key = { "paused-${it.id}" }) { subscription ->
                             SubscriptionRow(
                                 subscription = subscription,
@@ -240,7 +261,11 @@ private fun SummaryCard(
 ) {
     AnimaCard(contentPadding = PaddingValues(20.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("MONTHLY OUTFLOW", style = EyebrowStyle, color = AnimaTheme.palette.faint)
+            Text(
+                stringResource(Res.string.finance_monthly_outflow),
+                style = EyebrowStyle,
+                color = AnimaTheme.palette.faint,
+            )
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
                     text = primary?.monthly?.format() ?: "—",
@@ -248,10 +273,14 @@ private fun SummaryCard(
                 )
             }
             Text(
-                text = buildString {
-                    if (primary != null) append("${primary.yearly.format()} a year · ")
-                    append(activeCount)
-                    append(if (activeCount == 1) " active subscription" else " active subscriptions")
+                text = pluralStringResource(
+                    Res.plurals.finance_active_count,
+                    activeCount,
+                    activeCount,
+                ).let { count ->
+                    primary?.let {
+                        stringResource(Res.string.finance_total_line, it.yearly.format(), count)
+                    } ?: count
                 },
                 style = MaterialTheme.typography.bodyMedium,
                 color = AnimaTheme.palette.muted,
@@ -261,7 +290,10 @@ private fun SummaryCard(
             if (others.isNotEmpty()) {
                 HorizontalScrollRow {
                     others.forEach { total ->
-                        Pill("${total.monthly.format()}/mo", accent = AnimaTheme.palette.muted)
+                        Pill(
+                            stringResource(Res.string.finance_monthly_pill, total.monthly.format()),
+                            accent = AnimaTheme.palette.muted,
+                        )
                     }
                 }
             }
@@ -305,17 +337,24 @@ private fun TrialCard(subscription: Subscription, today: LocalDate, onClick: () 
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(subscription.name, style = MaterialTheme.typography.titleSmall)
                 Text(
-                    text = when {
-                        days == 0 -> "Free trial ends today"
-                        days == 1 -> "Free trial ends tomorrow"
-                        else -> "Free trial ends ${relativeDayLabel(days)}"
+                    text = when (days) {
+                        0 -> stringResource(Res.string.finance_trial_ends_today)
+                        1 -> stringResource(Res.string.finance_trial_ends_tomorrow)
+                        else -> stringResource(
+                            Res.string.finance_trial_ends_in,
+                            relativeDayLabel(days),
+                        )
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = accent,
                 )
             }
             Text(
-                text = "then ${subscription.currentPrice(today).format()}${subscription.cycle.shortSuffix}",
+                text = stringResource(
+                    Res.string.finance_then_price,
+                    subscription.currentPrice(today).format(),
+                    subscription.cycle.shortSuffix(),
+                ),
                 style = MaterialTheme.typography.bodySmall,
                 color = AnimaTheme.palette.muted,
             )
@@ -369,7 +408,7 @@ private fun CategoryBreakdown(slices: List<lux.uno.anima.finance.model.CategoryS
                         Text(slice.category.glyph, fontSize = 13.sp)
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            text = slice.category.label,
+                            text = slice.category.displayLabel(),
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.weight(1f),
                         )
@@ -418,7 +457,7 @@ private fun AddButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
             modifier = Modifier.size(18.dp),
         )
         Text(
-            "Add",
+            stringResource(Res.string.finance_add),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onPrimary,
         )

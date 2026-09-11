@@ -37,44 +37,6 @@ data class BillingCycle(
 
     val cyclesPerYear: Double get() = cyclesPerMonth * 12.0
 
-    /** "Monthly", "Every 3 months", "Yearly". */
-    val label: String
-        get() = if (interval == 1) {
-            when (period) {
-                BillingPeriod.DAY -> "Daily"
-                BillingPeriod.WEEK -> "Weekly"
-                BillingPeriod.MONTH -> "Monthly"
-                BillingPeriod.YEAR -> "Yearly"
-            }
-        } else {
-            val unit = when (period) {
-                BillingPeriod.DAY -> "days"
-                BillingPeriod.WEEK -> "weeks"
-                BillingPeriod.MONTH -> "months"
-                BillingPeriod.YEAR -> "years"
-            }
-            "Every $interval $unit"
-        }
-
-    /** "/mo", "/yr" — the suffix next to a price. */
-    val shortSuffix: String
-        get() = if (interval == 1) {
-            when (period) {
-                BillingPeriod.DAY -> "/day"
-                BillingPeriod.WEEK -> "/wk"
-                BillingPeriod.MONTH -> "/mo"
-                BillingPeriod.YEAR -> "/yr"
-            }
-        } else {
-            val unit = when (period) {
-                BillingPeriod.DAY -> "d"
-                BillingPeriod.WEEK -> "w"
-                BillingPeriod.MONTH -> "mo"
-                BillingPeriod.YEAR -> "yr"
-            }
-            "/$interval$unit"
-        }
-
     companion object {
         val Monthly = BillingCycle(BillingPeriod.MONTH, 1)
         val Yearly = BillingCycle(BillingPeriod.YEAR, 1)

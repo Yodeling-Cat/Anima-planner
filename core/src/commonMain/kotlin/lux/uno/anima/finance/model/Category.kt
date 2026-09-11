@@ -15,7 +15,12 @@ data class Category(
     val colorArgb: Long = 0xFF6C7BFF,
 ) {
     companion object {
-        /** Shown wherever a subscription has no category, and never stored on a record. */
+        /**
+         * Shown wherever a subscription has no category, and never stored on a record.
+         *
+         * Its empty id is what marks it as the stand-in, and what the UI keys off to show the
+         * word in the reader's language. The label here is only what a log line would print.
+         */
         val Uncategorised = Category(
             id = "",
             label = "Uncategorised",
@@ -23,7 +28,13 @@ data class Category(
             colorArgb = 0xFF9C948C,
         )
 
-        /** Seeded on first launch. Nothing depends on these ids afterwards. */
+        /**
+         * Seeded on first launch. Nothing depends on these ids afterwards.
+         *
+         * The labels are English because core has no language. A device seeds the list through
+         * `FinanceRepository(seedCategories = ...)`, which is where the UI hands over the same
+         * ids, glyphs and colours with the labels translated.
+         */
         fun defaults(): List<Category> = listOf(
             Category("cat-entertainment", "Entertainment", "🎬", 0xFFE0504F),
             Category("cat-software", "Software", "🛠", 0xFFB07CF5),

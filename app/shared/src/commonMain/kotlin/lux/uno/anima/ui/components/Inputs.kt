@@ -42,7 +42,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import lux.uno.anima.resources.*
 import lux.uno.anima.ui.theme.AnimaIcons
+import org.jetbrains.compose.resources.stringResource
 import lux.uno.anima.ui.theme.AnimaTheme
 import lux.uno.anima.ui.theme.EyebrowStyle
 
@@ -324,7 +326,7 @@ fun ColorSwatchRow(
                     if (!custom) {
                         Icon(
                             imageVector = AnimaIcons.Pencil,
-                            contentDescription = "Custom colour",
+                            contentDescription = stringResource(Res.string.color_picker_custom),
                             tint = Color.White,
                             modifier = Modifier.size(15.dp),
                         )

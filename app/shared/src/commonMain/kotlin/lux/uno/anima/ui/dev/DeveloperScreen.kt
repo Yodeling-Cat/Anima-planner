@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import lux.uno.anima.dev.AppEnvironment
 import lux.uno.anima.dev.Environments
 import lux.uno.anima.finance.FinanceData
+import lux.uno.anima.resources.*
 import lux.uno.anima.sync.SyncStatus
 import lux.uno.anima.ui.components.AnimaTopBar
 import lux.uno.anima.ui.components.AnimaTextField
@@ -43,9 +44,12 @@ import lux.uno.anima.ui.components.FormSection
 import lux.uno.anima.ui.components.GhostButton
 import lux.uno.anima.ui.components.IconAction
 import lux.uno.anima.ui.components.ScreenSurface
+import lux.uno.anima.ui.text.description
+import lux.uno.anima.ui.text.label
 import lux.uno.anima.ui.theme.AnimaIcons
 import lux.uno.anima.ui.theme.AnimaTheme
 import lux.uno.anima.ui.theme.EyebrowStyle
+import org.jetbrains.compose.resources.stringResource
 
 /** Amber for anything that is not production, so the warning colour is consistent. */
 internal val NonProductionAccent = Color(0xFFE0A458)
@@ -81,7 +85,7 @@ fun EnvironmentBanner(environment: AppEnvironment, onOpen: () -> Unit, modifier:
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = environment.label.uppercase(),
+            text = environment.label().uppercase(),
             style = EyebrowStyle,
             color = Color.Black.copy(alpha = 0.75f),
             textAlign = TextAlign.Center,
@@ -112,8 +116,10 @@ fun DeveloperScreen(
     ScreenSurface(modifier) { contentModifier ->
         Column(contentModifier.safeDrawingPadding().fillMaxSize()) {
             AnimaTopBar(
-                title = "Developer",
-                actions = { IconAction(AnimaIcons.Close, "Close", onClose) },
+                title = stringResource(Res.string.developer_title),
+                actions = {
+                    IconAction(AnimaIcons.Close, stringResource(Res.string.common_close), onClose)
+                },
             )
 
             Column(
@@ -124,7 +130,7 @@ fun DeveloperScreen(
                     .padding(bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(26.dp),
             ) {
-                FormSection("Environment") {
+                FormSection(stringResource(Res.string.developer_environment)) {
                     Environments.all.forEach { environment ->
                         EnvironmentRow(
                             environment = environment,
@@ -133,8 +139,7 @@ fun DeveloperScreen(
                         )
                     }
                     Text(
-                        "Each environment keeps its own data on this device. Switching never " +
-                            "copies anything between them, and nothing is deleted.",
+                        stringResource(Res.string.developer_environment_body),
                         style = MaterialTheme.typography.bodySmall,
                         color = AnimaTheme.palette.muted,
                     )
@@ -143,72 +148,86 @@ fun DeveloperScreen(
                 if (active.syncs) {
                     ServerSection(active, onSetServerUrl, onSetJoinPassword)
                 } else {
-                    FormSection("Server") {
+                    FormSection(stringResource(Res.string.developer_server)) {
                         Text(
-                            "This environment has no server by design. Nothing it holds can " +
-                                "leave the device.",
+                            stringResource(Res.string.developer_no_server_body),
                             style = MaterialTheme.typography.bodySmall,
                             color = AnimaTheme.palette.muted,
                         )
                     }
                 }
 
-                FormSection("This environment") {
-                    DetailRow("Data file", active.dataFileName)
-                    DetailRow("Icons", active.iconFolderName)
-                    DetailRow("Subscriptions", data.subscriptions.size.toString())
-                    DetailRow("Payment methods", data.paymentMethods.size.toString())
-                    DetailRow("Categories", data.categories.size.toString())
+                FormSection(stringResource(Res.string.developer_this_environment)) {
+                    DetailRow(stringResource(Res.string.developer_data_file), active.dataFileName)
+                    DetailRow(stringResource(Res.string.developer_icons), active.iconFolderName)
+                    DetailRow(
+                        stringResource(Res.string.developer_subscriptions),
+                        data.subscriptions.size.toString(),
+                    )
+                    DetailRow(
+                        stringResource(Res.string.developer_payment_methods),
+                        data.paymentMethods.size.toString(),
+                    )
+                    DetailRow(
+                        stringResource(Res.string.developer_categories),
+                        data.categories.size.toString(),
+                    )
                 }
 
-                FormSection("Sync") {
-                    DetailRow("Status", syncStatus.describe())
+                FormSection(stringResource(Res.string.developer_sync)) {
+                    DetailRow(stringResource(Res.string.developer_status), syncStatus.describe())
                     Text(
                         syncStatus.explain(active.syncs),
                         style = MaterialTheme.typography.bodySmall,
                         color = AnimaTheme.palette.muted,
                     )
                     if (active.syncs) {
-                        GhostButton("Sync now", onSyncNow)
+                        GhostButton(stringResource(Res.string.account_sync_now), onSyncNow)
                     }
                 }
 
                 if (!shakeSupported) {
-                    FormSection("Opening this screen") {
+                    FormSection(stringResource(Res.string.developer_shake_title)) {
                         Text(
-                            "This device has no accelerometer, so the shake gesture is " +
-                                "unavailable. Ctrl+Shift+D opens this screen instead.",
+                            stringResource(Res.string.developer_shake_body),
                             style = MaterialTheme.typography.bodySmall,
                             color = AnimaTheme.palette.muted,
                         )
                     }
                 }
 
-                GhostButton("Close", onClose, modifier = Modifier.fillMaxWidth())
+                GhostButton(
+                    stringResource(Res.string.common_close),
+                    onClose,
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
         }
     }
 }
 
-private fun SyncStatus.describe(): String = when (this) {
-    SyncStatus.Idle -> "Up to date"
-    SyncStatus.Syncing -> "Syncing"
-    SyncStatus.Offline -> "Cannot reach the server"
-    SyncStatus.SignedOut -> "Signed out"
-    SyncStatus.Failed -> "Last attempt failed"
-}
+@Composable
+private fun SyncStatus.describe(): String = stringResource(
+    when (this) {
+        SyncStatus.Idle -> Res.string.sync_headline_up_to_date
+        SyncStatus.Syncing -> Res.string.sync_headline_syncing
+        SyncStatus.Offline -> Res.string.sync_headline_offline
+        SyncStatus.SignedOut -> Res.string.sync_headline_signed_out
+        SyncStatus.Failed -> Res.string.sync_headline_failed
+    },
+)
 
 /** Says what the state means rather than restating it, since these are easy to misread. */
-private fun SyncStatus.explain(syncs: Boolean): String = when {
-    !syncs -> "This environment never syncs, so there is nothing to be up to date with."
-    this == SyncStatus.Offline ->
-        "Edits are kept here and go up when the server is reachable again. Nothing is lost."
-    this == SyncStatus.SignedOut ->
-        "No session for this environment. Everything still works offline; there is no way " +
-            "to sign in from the app yet."
-    this == SyncStatus.Failed -> "Something was reached and refused the exchange."
-    else -> "Changes are sent shortly after each edit."
-}
+@Composable
+private fun SyncStatus.explain(syncs: Boolean): String = stringResource(
+    when {
+        !syncs -> Res.string.sync_detail_never_syncs
+        this == SyncStatus.Offline -> Res.string.sync_detail_offline_short
+        this == SyncStatus.SignedOut -> Res.string.sync_detail_signed_out
+        this == SyncStatus.Failed -> Res.string.sync_detail_failed_short
+        else -> Res.string.sync_detail_idle
+    },
+)
 
 @Composable
 private fun ServerSection(
@@ -221,40 +240,43 @@ private fun ServerSection(
     var draft by remember(active.id) { mutableStateOf(active.serverUrl.orEmpty()) }
     var join by remember(active.id) { mutableStateOf(active.joinPassword.orEmpty()) }
 
-    FormSection("Server") {
+    FormSection(stringResource(Res.string.developer_server)) {
         AnimaTextField(
             value = draft,
             onValueChange = { draft = it },
-            label = "Address",
+            label = stringResource(Res.string.developer_address),
             placeholder = "http://192.168.1.20:8080",
         )
         Text(
-            "Leave empty to go back to the built-in address. A phone cannot reach the " +
-                "laptop running the server on \"localhost\" — use its address on the network.",
+            stringResource(Res.string.developer_address_body),
             style = MaterialTheme.typography.bodySmall,
             color = AnimaTheme.palette.muted,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            GhostButton("Apply", { onSetServerUrl(active.id, draft) })
-            GhostButton("Reset", { draft = ""; onSetServerUrl(active.id, "") })
+            GhostButton(stringResource(Res.string.common_apply), { onSetServerUrl(active.id, draft) })
+            GhostButton(
+                stringResource(Res.string.common_reset),
+                { draft = ""; onSetServerUrl(active.id, "") },
+            )
         }
 
         AnimaTextField(
             value = join,
             onValueChange = { join = it },
-            label = "Join password",
-            placeholder = "Only needed to create an account",
+            label = stringResource(Res.string.developer_join_password),
+            placeholder = stringResource(Res.string.developer_join_password_placeholder),
         )
         Text(
-            "A private server asks newcomers for this. Whoever runs it can tell you what " +
-                "it is. It is not your account password and is only used when creating an " +
-                "account — signing in afterwards never needs it.",
+            stringResource(Res.string.developer_join_password_body),
             style = MaterialTheme.typography.bodySmall,
             color = AnimaTheme.palette.muted,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            GhostButton("Apply", { onSetJoinPassword(active.id, join) })
-            GhostButton("Clear", { join = ""; onSetJoinPassword(active.id, "") })
+            GhostButton(stringResource(Res.string.common_apply), { onSetJoinPassword(active.id, join) })
+            GhostButton(
+                stringResource(Res.string.common_clear),
+                { join = ""; onSetJoinPassword(active.id, "") },
+            )
         }
     }
 }
@@ -286,9 +308,9 @@ private fun EnvironmentRow(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            Text(environment.label, style = MaterialTheme.typography.titleSmall)
+            Text(environment.label(), style = MaterialTheme.typography.titleSmall)
             Text(
-                environment.description,
+                environment.description(),
                 style = MaterialTheme.typography.bodySmall,
                 color = AnimaTheme.palette.muted,
             )
@@ -296,7 +318,7 @@ private fun EnvironmentRow(
         if (selected) {
             androidx.compose.material3.Icon(
                 imageVector = AnimaIcons.Check,
-                contentDescription = "Active",
+                contentDescription = stringResource(Res.string.common_active),
                 tint = accent,
                 modifier = Modifier.size(20.dp),
             )

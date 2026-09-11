@@ -47,6 +47,7 @@ import kotlinx.coroutines.launch
 import lux.uno.anima.dev.AppEnvironment
 import lux.uno.anima.dev.EnvironmentStore
 import lux.uno.anima.dev.createShakeDetector
+import lux.uno.anima.resources.*
 import lux.uno.anima.ui.dev.DeveloperScreen
 import lux.uno.anima.ui.dev.EnvironmentBanner
 import lux.uno.anima.ui.dev.showsBanner
@@ -55,7 +56,6 @@ import lux.uno.anima.finance.model.buildOverview
 import lux.uno.anima.finance.model.cardsNeedingAttention
 import lux.uno.anima.finance.model.format
 import lux.uno.anima.finance.model.trialNeedsAttention
-import lux.uno.anima.finance.relativeDayLabel
 import lux.uno.anima.finance.reminders.JsonFileHandledReminderStore
 import lux.uno.anima.finance.reminders.ReminderCoordinator
 import lux.uno.anima.finance.reminders.createReminderNotifier
@@ -97,7 +97,11 @@ import lux.uno.anima.ui.nav.Screen
 import lux.uno.anima.ui.nav.SystemBackHandler
 import lux.uno.anima.ui.nav.rememberNavigator
 import lux.uno.anima.ui.nav.stateKey
+import lux.uno.anima.ui.text.ResourceReminderStrings
+import lux.uno.anima.ui.text.relativeDayLabel
+import lux.uno.anima.ui.text.seededCategories
 import lux.uno.anima.ui.theme.AnimaTheme
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun App() {
@@ -146,10 +150,14 @@ private fun Anima(
     // Keyed on the environment, so selecting a different one rebuilds the whole data
     // layer against that environment's files. That is what makes the switch take effect
     // without a restart — and why nothing needs to be told to reload.
+    // Read here rather than inside the repository: the starting categories are strings, and
+    // strings are only reachable from composition.
+    val seedCategories = seededCategories()
     val repository = remember(environment.id, nodeId) {
         FinanceRepository(
             store = JsonFileFinanceStore(fileName = environment.dataFileName),
             scope = scope,
+            seedCategories = seedCategories,
             clock = HybridClock(nodeId, last = startingState?.lastHlc ?: Hlc.Zero),
         )
     }
@@ -160,6 +168,7 @@ private fun Anima(
         ReminderCoordinator(
             notifier = createReminderNotifier(),
             repository = repository,
+            strings = ResourceReminderStrings,
             // Device state, so it lives beside the sync cursor rather than in the dataset.
             handledStore = JsonFileHandledReminderStore(
                 fileName = environment.handledRemindersFileName,
@@ -312,15 +321,22 @@ private fun Anima(
         reminders.run()
     }
 
-    val glance = remember(data, today) {
-        val overview =
-            buildOverview(data.subscriptions, data.categories, today, data.settings.preferredCurrency)
+    val overview = remember(data, today) {
+        buildOverview(data.subscriptions, data.categories, today, data.settings.preferredCurrency)
+    }
+    // Built outside the remember below because it reads strings, which only composition can do.
+    val nextCharge = overview.upcoming.firstOrNull()?.let {
+        stringResource(
+            Res.string.dashboard_next_charge,
+            it.subscription.name,
+            relativeDayLabel(it.daysAway),
+        )
+    }
+    val glance = remember(data, today, overview, nextCharge) {
         FinanceGlance(
             monthlyTotal = overview.primaryTotal?.monthly?.format(),
             subscriptionCount = overview.activeCount,
-            nextChargeLabel = overview.upcoming.firstOrNull()?.let {
-                "${it.subscription.name} ${relativeDayLabel(it.daysAway)}"
-            },
+            nextChargeLabel = nextCharge,
             alertCount = data.subscriptions.count { it.isActive && it.trialNeedsAttention(today) } +
                 data.paymentMethods.cardsNeedingAttention(today).size,
         )

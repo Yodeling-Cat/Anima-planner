@@ -16,10 +16,12 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.toLocalDateTime
-import lux.uno.anima.finance.formatLong
+import lux.uno.anima.resources.*
+import lux.uno.anima.ui.text.formatLong
 import lux.uno.anima.ui.theme.AnimaIcons
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Dates are held as calendar days, so both conversions run in UTC — the picker hands back a
@@ -61,10 +63,10 @@ fun DateField(
                         state.selectedDateMillis?.let { onDateChange(it.toPickerDate()) }
                         open = false
                     },
-                ) { Text("Choose") }
+                ) { Text(stringResource(Res.string.date_field_choose)) }
             },
             dismissButton = {
-                TextButton(onClick = { open = false }) { Text("Cancel") }
+                TextButton(onClick = { open = false }) { Text(stringResource(Res.string.common_cancel)) }
             },
         ) {
             DatePicker(state = state, showModeToggle = true)

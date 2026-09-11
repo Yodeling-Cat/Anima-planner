@@ -74,7 +74,7 @@ class BillingCycleTest {
         val anchor = LocalDate(2019, 1, 31)
         val today = LocalDate(2026, 9, 10)
         listOf(monthly, quarterly, yearly, BillingCycle.Weekly).forEach { cycle ->
-            assertTrue(cycle.nextOccurrence(anchor, today) >= today, "failed for ${cycle.label}")
+            assertTrue(cycle.nextOccurrence(anchor, today) >= today, "failed for $cycle")
         }
     }
 

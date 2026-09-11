@@ -24,7 +24,7 @@ class ReminderReceiver : BroadcastReceiver() {
 
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
             ?: return
-        ensureChannel(manager)
+        ensureChannel(context, manager)
 
         @Suppress("DEPRECATION")
         val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -45,16 +45,19 @@ class ReminderReceiver : BroadcastReceiver() {
     }
 }
 
-internal fun ensureChannel(manager: NotificationManager) {
+internal fun ensureChannel(context: Context, manager: NotificationManager) {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
     if (manager.getNotificationChannel(REMINDER_CHANNEL_ID) != null) return
     manager.createNotificationChannel(
         NotificationChannel(
             REMINDER_CHANNEL_ID,
-            "Reminders",
+            context.reminderString("anima_reminder_channel_name", "Reminders"),
             NotificationManager.IMPORTANCE_DEFAULT,
         ).apply {
-            description = "Card expiry and other dated reminders"
+            description = context.reminderString(
+                "anima_reminder_channel_description",
+                "Card expiry and other dated reminders",
+            )
         },
     )
 }
@@ -64,3 +67,15 @@ internal fun Context.reminderIconRes(): Int =
     resources.getIdentifier("anima_reminder", "drawable", packageName)
         .takeIf { it != 0 }
         ?: android.R.drawable.ic_dialog_info
+
+/**
+ * Resolved by name for the same reason as the icon above.
+ *
+ * The channel is the one string Android reads rather than the app, so it cannot come from
+ * Compose’s resources — it is shown in the system settings, where there is no composition.
+ */
+private fun Context.reminderString(name: String, fallback: String): String =
+    resources.getIdentifier(name, "string", packageName)
+        .takeIf { it != 0 }
+        ?.let(::getString)
+        ?: fallback

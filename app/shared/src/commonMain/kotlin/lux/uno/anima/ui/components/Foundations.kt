@@ -36,9 +36,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import lux.uno.anima.resources.*
 import lux.uno.anima.ui.theme.AnimaIcons
 import lux.uno.anima.ui.theme.AnimaTheme
 import lux.uno.anima.ui.theme.EyebrowStyle
+import org.jetbrains.compose.resources.stringResource
 
 /** Widest the content column is allowed to get, so desktop windows stay readable. */
 private val ContentMaxWidth = 620.dp
@@ -83,7 +85,7 @@ fun AnimaTopBar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (onBack != null) {
-            IconAction(AnimaIcons.ArrowLeft, "Back", onBack)
+            IconAction(AnimaIcons.ArrowLeft, stringResource(Res.string.common_back), onBack)
         } else {
             Spacer(Modifier.size(12.dp))
         }

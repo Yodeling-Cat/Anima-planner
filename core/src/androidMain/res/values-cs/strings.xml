@@ -1,0 +1,4 @@
+<resources>
+    <string name="anima_reminder_channel_name">Připomínky</string>
+    <string name="anima_reminder_channel_description">Vypršení karet a další připomínky s datem</string>
+</resources>

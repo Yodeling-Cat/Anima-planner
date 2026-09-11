@@ -14,6 +14,8 @@ import lux.uno.anima.finance.reminders.InMemoryHandledReminderStore
 import lux.uno.anima.finance.reminders.ReminderCoordinator
 import lux.uno.anima.finance.reminders.ReminderKind
 import lux.uno.anima.finance.reminders.ReminderNotifier
+import lux.uno.anima.finance.reminders.ReminderStrings
+import lux.uno.anima.finance.reminders.ReminderText
 import lux.uno.anima.finance.reminders.buildReminders
 import lux.uno.anima.finance.store.InMemoryFinanceStore
 import lux.uno.anima.sync.HybridClock
@@ -71,7 +73,7 @@ class CardExpiryTest {
     }
 
     @Test
-    fun expiryOnAnythingOtherThanACardIsIgnored() {
+    fun expiryOnAnythingOtherThanACardIsIgnored() = runTest {
         val account = PaymentMethod(
             id = "pm-bank",
             name = "Main account",
@@ -79,15 +81,16 @@ class CardExpiryTest {
             expiry = CardExpiry(2026, 9),
         )
         assertTrue(listOf(account).cardsNeedingAttention(LocalDate(2026, 9, 30)).isEmpty())
-        assertTrue(buildReminders(FinanceData(paymentMethods = listOf(account))).isEmpty())
+        assertTrue(buildReminders(FinanceData(paymentMethods = listOf(account)), TestStrings).isEmpty())
     }
 }
 
 class ReminderScheduleTest {
 
     @Test
-    fun aCardProducesAWarningAndAnExpiryDayReminder() {
-        val reminders = buildReminders(FinanceData(paymentMethods = listOf(card(CardExpiry(2026, 9)))))
+    fun aCardProducesAWarningAndAnExpiryDayReminder() = runTest {
+        val reminders =
+            buildReminders(FinanceData(paymentMethods = listOf(card(CardExpiry(2026, 9)))), TestStrings)
 
         assertEquals(2, reminders.size)
         assertEquals(ReminderKind.CARD_EXPIRING_SOON, reminders[0].kind)
@@ -97,14 +100,17 @@ class ReminderScheduleTest {
     }
 
     @Test
-    fun aCardWithNoExpiryProducesNothing() {
-        assertTrue(buildReminders(FinanceData(paymentMethods = listOf(card(expiry = null)))).isEmpty())
+    fun aCardWithNoExpiryProducesNothing() = runTest {
+        val data = FinanceData(paymentMethods = listOf(card(expiry = null)))
+        assertTrue(buildReminders(data, TestStrings).isEmpty())
     }
 
     @Test
-    fun changingTheExpiryChangesTheIdsSoTheRemindersReArm() {
-        val before = buildReminders(FinanceData(paymentMethods = listOf(card(CardExpiry(2026, 9)))))
-        val after = buildReminders(FinanceData(paymentMethods = listOf(card(CardExpiry(2029, 9)))))
+    fun changingTheExpiryChangesTheIdsSoTheRemindersReArm() = runTest {
+        val before =
+            buildReminders(FinanceData(paymentMethods = listOf(card(CardExpiry(2026, 9)))), TestStrings)
+        val after =
+            buildReminders(FinanceData(paymentMethods = listOf(card(CardExpiry(2029, 9)))), TestStrings)
 
         assertTrue(before.map { it.id }.intersect(after.map { it.id }.toSet()).isEmpty())
     }
@@ -120,7 +126,7 @@ class ReminderCoordinatorTest {
     fun overdueRemindersAreShownOnceAndNeverAgain() = runTest {
         val notifier = FakeNotifier(deliversWhenClosed = false)
         val repository = repositoryWithCard()
-        val coordinator = ReminderCoordinator(notifier, repository)
+        val coordinator = ReminderCoordinator(notifier, repository, TestStrings)
 
         coordinator.sync(today = LocalDate(2026, 9, 11))
         assertContentEquals(listOf(warnDate), notifier.delivered.map { it.date })
@@ -132,7 +138,7 @@ class ReminderCoordinatorTest {
     @Test
     fun futureRemindersAreHandedToThePlatform() = runTest {
         val notifier = FakeNotifier(deliversWhenClosed = true)
-        val coordinator = ReminderCoordinator(notifier, repositoryWithCard())
+        val coordinator = ReminderCoordinator(notifier, repositoryWithCard(), TestStrings)
 
         coordinator.sync(today = LocalDate(2026, 9, 11))
 
@@ -142,7 +148,7 @@ class ReminderCoordinatorTest {
     @Test
     fun aPhoneDoesNotRepeatWhatTheSystemAlreadyDelivered() = runTest {
         val notifier = FakeNotifier(deliversWhenClosed = true)
-        val coordinator = ReminderCoordinator(notifier, repositoryWithCard())
+        val coordinator = ReminderCoordinator(notifier, repositoryWithCard(), TestStrings)
 
         coordinator.sync(today = LocalDate(2026, 9, 11))
         notifier.delivered.clear()
@@ -156,7 +162,7 @@ class ReminderCoordinatorTest {
     @Test
     fun aDesktopLeftOpenShowsTheExpiryDayReminderWhenTheDayArrives() = runTest {
         val notifier = FakeNotifier(deliversWhenClosed = false)
-        val coordinator = ReminderCoordinator(notifier, repositoryWithCard())
+        val coordinator = ReminderCoordinator(notifier, repositoryWithCard(), TestStrings)
 
         coordinator.sync(today = LocalDate(2026, 9, 11))
         notifier.delivered.clear()
@@ -170,7 +176,7 @@ class ReminderCoordinatorTest {
         val notifier = FakeNotifier(deliversWhenClosed = true)
         val repository = repositoryWithCard()
         val handled = InMemoryHandledReminderStore()
-        val coordinator = ReminderCoordinator(notifier, repository, handled)
+        val coordinator = ReminderCoordinator(notifier, repository, TestStrings, handled)
 
         coordinator.sync(today = LocalDate(2026, 9, 11))
         assertEquals(2, handled.load().size)
@@ -188,7 +194,7 @@ class ReminderCoordinatorTest {
         val repository = repositoryWithCard()
         val before = repository.data.value
 
-        ReminderCoordinator(notifier, repository).sync(today = LocalDate(2026, 9, 11))
+        ReminderCoordinator(notifier, repository, TestStrings).sync(today = LocalDate(2026, 9, 11))
 
         assertEquals(before, repository.data.value)
     }
@@ -197,12 +203,12 @@ class ReminderCoordinatorTest {
     fun handledIdsSurviveARestart() = runTest {
         val repository = repositoryWithCard()
         val handled = InMemoryHandledReminderStore()
-        ReminderCoordinator(FakeNotifier(deliversWhenClosed = true), repository, handled)
+        ReminderCoordinator(FakeNotifier(deliversWhenClosed = true), repository, TestStrings, handled)
             .sync(today = LocalDate(2026, 9, 11))
 
         // A second coordinator is what the next launch builds.
         val notifier = FakeNotifier(deliversWhenClosed = true)
-        ReminderCoordinator(notifier, repository, handled).sync(today = expiryDate)
+        ReminderCoordinator(notifier, repository, TestStrings, handled).sync(today = expiryDate)
 
         assertTrue(notifier.delivered.isEmpty(), "already delivered before the restart")
     }
@@ -239,4 +245,16 @@ private class FakeNotifier(override val deliversWhenClosed: Boolean) : ReminderN
     override suspend fun deliverNow(reminder: Reminder) {
         delivered += reminder
     }
+}
+
+/**
+ * Stands in for the UI module, which owns the real wording. The tests care about ids, dates
+ * and how often something fires, none of which the text takes part in.
+ */
+private object TestStrings : ReminderStrings {
+    override suspend fun cardExpiringSoon(card: String, expiresOn: LocalDate) =
+        ReminderText("$card expires soon", "Last day $expiresOn")
+
+    override suspend fun cardExpiresToday(card: String) =
+        ReminderText("$card expires today", "Last day today")
 }

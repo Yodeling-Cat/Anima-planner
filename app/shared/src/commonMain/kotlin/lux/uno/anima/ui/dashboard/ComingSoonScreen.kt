@@ -15,10 +15,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import lux.uno.anima.resources.*
 import lux.uno.anima.ui.components.AnimaTopBar
 import lux.uno.anima.ui.components.ScreenSurface
 import lux.uno.anima.ui.theme.AnimaTheme
 import lux.uno.anima.ui.theme.EyebrowStyle
+import org.jetbrains.compose.resources.stringResource
 
 /** Placeholder for the areas that have no feature behind them yet. */
 @Composable
@@ -50,7 +52,7 @@ fun ComingSoonScreen(
                 )
                 Spacer(Modifier.padding(4.dp))
                 Text(
-                    text = "NOT BUILT YET",
+                    text = stringResource(Res.string.coming_soon_not_built),
                     style = EyebrowStyle,
                     color = AnimaTheme.palette.faint,
                 )

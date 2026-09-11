@@ -58,10 +58,10 @@ data class FinanceData(
  * read, so those records land uncategorised and the built-in list is seeded for them to be
  * sorted into again. Version 2 to 3 only added fields, which deserialise to their defaults.
  */
-fun FinanceData.migrated(): FinanceData {
+fun FinanceData.migrated(seedCategories: List<Category> = Category.defaults()): FinanceData {
     if (schemaVersion >= FINANCE_SCHEMA_VERSION && categories.isNotEmpty()) return this
     return copy(
-        categories = categories.ifEmpty { Category.defaults() },
+        categories = categories.ifEmpty { seedCategories },
         schemaVersion = FINANCE_SCHEMA_VERSION,
     )
 }
@@ -81,8 +81,8 @@ fun FinanceData.migrated(): FinanceData {
  * A seeded record that the user then edits is stamped properly by [restamped], because at
  * that point it is something they did.
  */
-fun emptyFinanceData(): FinanceData {
-    val categories = Category.defaults()
+fun emptyFinanceData(seedCategories: List<Category> = Category.defaults()): FinanceData {
+    val categories = seedCategories
     return FinanceData(
         categories = categories,
         meta = buildMap {

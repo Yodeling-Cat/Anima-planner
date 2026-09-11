@@ -21,6 +21,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import lux.uno.anima.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * A curated emoji strip with a free-text box beside it, so anything not on the strip can
@@ -45,7 +47,7 @@ fun EmojiStrip(
                     value = selected,
                     // Four characters is enough for a flag or a skin-tone modifier sequence.
                     onValueChange = { onTyped(it.take(4)) },
-                    label = "Icon",
+                    label = stringResource(Res.string.emoji_icon_label),
                     placeholder = "✦",
                     modifier = Modifier.weight(1f),
                 )

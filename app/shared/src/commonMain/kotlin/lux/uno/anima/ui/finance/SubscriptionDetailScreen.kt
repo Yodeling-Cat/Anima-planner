@@ -30,8 +30,6 @@ import androidx.compose.ui.unit.dp
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.daysUntil
 import lux.uno.anima.finance.FinanceData
-import lux.uno.anima.finance.formatLong
-import lux.uno.anima.finance.formatShort
 import lux.uno.anima.finance.model.BillingPeriod
 import lux.uno.anima.finance.model.Category
 import lux.uno.anima.finance.model.Money
@@ -46,7 +44,7 @@ import lux.uno.anima.finance.model.nextRenewal
 import lux.uno.anima.finance.model.priceChangeSinceStart
 import lux.uno.anima.finance.model.resolve
 import lux.uno.anima.finance.model.yearlyCost
-import lux.uno.anima.finance.relativeDayLabel
+import lux.uno.anima.resources.*
 import lux.uno.anima.ui.components.AnimaCard
 import lux.uno.anima.ui.components.AnimaTextField
 import lux.uno.anima.ui.components.AnimaTopBar
@@ -61,6 +59,12 @@ import lux.uno.anima.ui.components.ScreenSurface
 import lux.uno.anima.ui.components.SectionHeader
 import lux.uno.anima.ui.finance.components.PriceHistoryChart
 import lux.uno.anima.ui.icons.SubscriptionIcon
+import lux.uno.anima.ui.text.displayLabel
+import lux.uno.anima.ui.text.formatLong
+import lux.uno.anima.ui.text.formatShort
+import lux.uno.anima.ui.text.label
+import lux.uno.anima.ui.text.relativeDayLabel
+import lux.uno.anima.ui.text.shortSuffix
 import lux.uno.anima.ui.theme.AnimaIcons
 import lux.uno.anima.ui.theme.AnimaTheme
 import lux.uno.anima.ui.theme.EyebrowStyle
@@ -69,6 +73,8 @@ import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 import androidx.compose.runtime.saveable.rememberSaveable
 import lux.uno.anima.ui.components.LocalDateSaver
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SubscriptionDetailScreen(
@@ -100,13 +106,16 @@ fun SubscriptionDetailScreen(
                 actions = {
                     IconAction(
                         icon = if (subscription.isActive) AnimaIcons.Pause else AnimaIcons.Play,
-                        contentDescription = if (subscription.isActive) "Pause" else "Resume",
+                        contentDescription = stringResource(
+                            if (subscription.isActive) Res.string.detail_pause
+                            else Res.string.detail_resume,
+                        ),
                         onClick = onTogglePaused,
                     )
-                    IconAction(AnimaIcons.Pencil, "Edit", onEdit)
+                    IconAction(AnimaIcons.Pencil, stringResource(Res.string.common_edit), onEdit)
                     IconAction(
                         icon = AnimaIcons.Trash,
-                        contentDescription = "Delete",
+                        contentDescription = stringResource(Res.string.common_delete),
                         onClick = { showDeleteDialog = true },
                         tint = MaterialTheme.colorScheme.error,
                     )
@@ -128,9 +137,9 @@ fun SubscriptionDetailScreen(
                 }
 
                 Spacer(Modifier.height(4.dp))
-                SectionHeader("Price history") {
+                SectionHeader(stringResource(Res.string.detail_price_history)) {
                     GhostButton(
-                        label = "Record change",
+                        label = stringResource(Res.string.detail_record_change),
                         onClick = { showPriceDialog = true },
                         icon = AnimaIcons.TrendUp,
                         color = MaterialTheme.colorScheme.onSurface,
@@ -160,17 +169,17 @@ fun SubscriptionDetailScreen(
                 }
 
                 Spacer(Modifier.height(4.dp))
-                SectionHeader("Details")
+                SectionHeader(stringResource(Res.string.detail_details))
                 AnimaCard(contentPadding = PaddingValues(16.dp)) {
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         Row(Modifier.fillMaxWidth()) {
                             LabelledValue(
-                                label = "Next charge",
+                                label = stringResource(Res.string.detail_next_charge),
                                 value = subscription.nextRenewal(today).formatShort(today),
                                 modifier = Modifier.weight(1f),
                             )
                             LabelledValue(
-                                label = "That is",
+                                label = stringResource(Res.string.detail_that_is),
                                 value = relativeDayLabel(subscription.daysUntilRenewal(today))
                                     .replaceFirstChar { it.uppercase() },
                                 modifier = Modifier.weight(1f),
@@ -178,12 +187,12 @@ fun SubscriptionDetailScreen(
                         }
                         Row(Modifier.fillMaxWidth()) {
                             LabelledValue(
-                                label = "Billing",
-                                value = subscription.cycle.label,
+                                label = stringResource(Res.string.detail_billing),
+                                value = subscription.cycle.label(),
                                 modifier = Modifier.weight(1f),
                             )
                             LabelledValue(
-                                label = "Tracking since",
+                                label = stringResource(Res.string.detail_tracking_since),
                                 value = (history.firstOrNull()?.effectiveFrom ?: subscription.anchorDate)
                                     .formatShort(),
                                 modifier = Modifier.weight(1f),
@@ -191,15 +200,16 @@ fun SubscriptionDetailScreen(
                         }
                         Row(Modifier.fillMaxWidth()) {
                             LabelledValue(
-                                label = "Paid with",
-                                value = method?.displayName ?: "Not set",
+                                label = stringResource(Res.string.detail_paid_with),
+                                value = method?.displayName
+                                    ?: stringResource(Res.string.common_not_set),
                                 modifier = Modifier.weight(1f),
                                 valueColor = if (method == null) AnimaTheme.palette.faint
                                 else MaterialTheme.colorScheme.onSurface,
                             )
                             LabelledValue(
-                                label = "Category",
-                                value = category.label,
+                                label = stringResource(Res.string.detail_category),
+                                value = category.displayLabel(),
                                 modifier = Modifier.weight(1f),
                             )
                         }
@@ -208,7 +218,7 @@ fun SubscriptionDetailScreen(
 
                 if (subscription.notes.isNotBlank()) {
                     Spacer(Modifier.height(4.dp))
-                    SectionHeader("Notes")
+                    SectionHeader(stringResource(Res.string.detail_notes))
                     AnimaCard(contentPadding = PaddingValues(16.dp)) {
                         Text(
                             text = subscription.notes,
@@ -237,15 +247,22 @@ fun SubscriptionDetailScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Delete ${subscription.name}?") },
-            text = { Text("Its price history goes with it. This cannot be undone.") },
+            title = {
+                Text(stringResource(Res.string.detail_delete_title, subscription.name))
+            },
+            text = { Text(stringResource(Res.string.detail_delete_body)) },
             confirmButton = {
                 TextButton(onClick = { showDeleteDialog = false; onDelete() }) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                    Text(
+                        stringResource(Res.string.common_delete),
+                        color = MaterialTheme.colorScheme.error,
+                    )
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text("Keep") }
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text(stringResource(Res.string.common_keep))
+                }
             },
         )
     }
@@ -270,12 +287,12 @@ private fun HeaderCard(
                     Text(subscription.name, style = MaterialTheme.typography.headlineSmall)
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         Pill(
-                            text = category.label,
+                            text = category.displayLabel(),
                             accent = Color(category.colorArgb),
                             leading = category.glyph,
                         )
                         if (!subscription.isActive) {
-                            Pill("Paused", accent = AnimaTheme.palette.faint)
+                            Pill(stringResource(Res.string.sub_paused), accent = AnimaTheme.palette.faint)
                         }
                     }
                 }
@@ -284,7 +301,7 @@ private fun HeaderCard(
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(price.format(), style = MaterialTheme.typography.displaySmall)
                 Text(
-                    text = subscription.cycle.shortSuffix,
+                    text = subscription.cycle.shortSuffix(),
                     style = MaterialTheme.typography.titleMedium,
                     color = AnimaTheme.palette.muted,
                     modifier = Modifier.padding(bottom = 4.dp, start = 2.dp),
@@ -292,9 +309,15 @@ private fun HeaderCard(
             }
 
             Text(
-                text = if (isMonthly) "${subscription.yearlyCost(today).format()} a year"
-                else "${subscription.monthlyCost(today).format()} a month · "
-                    + "${subscription.yearlyCost(today).format()} a year",
+                text = if (isMonthly) {
+                    stringResource(Res.string.detail_yearly, subscription.yearlyCost(today).format())
+                } else {
+                    stringResource(
+                        Res.string.detail_monthly_and_yearly,
+                        subscription.monthlyCost(today).format(),
+                        subscription.yearlyCost(today).format(),
+                    )
+                },
                 style = MaterialTheme.typography.bodyMedium,
                 color = AnimaTheme.palette.muted,
             )
@@ -310,7 +333,7 @@ private fun PriceChangeHeadline(subscription: Subscription, today: LocalDate, ac
 
     if (change == null || first == null) {
         Text(
-            text = "One price recorded so far. Log the next change and this becomes a trend.",
+            text = stringResource(Res.string.detail_one_price),
             style = MaterialTheme.typography.bodyMedium,
             color = AnimaTheme.palette.muted,
         )
@@ -328,16 +351,22 @@ private fun PriceChangeHeadline(subscription: Subscription, today: LocalDate, ac
     Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
         Text(
             text = when {
-                change == 0.0 -> "Same price as when you started"
-                rising -> "Up $percent% since you started"
-                else -> "Down $percent% since you started"
+                change == 0.0 -> stringResource(Res.string.detail_same_price)
+                // The sign and the percent sign are built here rather than in the string,
+                // so no translation has to carry a bare "%" through its own formatter.
+                rising -> stringResource(Res.string.detail_up_since, "$percent%")
+                else -> stringResource(Res.string.detail_down_since, "$percent%")
             },
             style = MaterialTheme.typography.titleSmall,
             color = color,
         )
         Text(
-            text = "${first.price.format()} on ${first.effectiveFrom.formatShort()} → "
-                + subscription.currentPrice(today).format(),
+            text = stringResource(
+                Res.string.detail_price_from_to,
+                first.price.format(),
+                first.effectiveFrom.formatShort(),
+                subscription.currentPrice(today).format(),
+            ),
             style = MaterialTheme.typography.bodySmall,
             color = AnimaTheme.palette.muted,
         )
@@ -377,7 +406,10 @@ private fun PriceHistoryRow(
                 )
             } else if (point.effectiveFrom > today) {
                 Text(
-                    text = "Takes effect ${relativeDayLabel(today.daysUntil(point.effectiveFrom))}",
+                    text = stringResource(
+                        Res.string.detail_takes_effect,
+                        relativeDayLabel(today.daysUntil(point.effectiveFrom)),
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                     color = AnimaTheme.palette.warning,
                 )
@@ -397,7 +429,7 @@ private fun PriceHistoryRow(
             Spacer(Modifier.width(4.dp))
             IconAction(
                 icon = AnimaIcons.Close,
-                contentDescription = "Remove this price point",
+                contentDescription = stringResource(Res.string.detail_remove_price_point),
                 onClick = onDelete,
                 tint = AnimaTheme.palette.faint,
             )
@@ -413,25 +445,32 @@ private fun TrialPanel(subscription: Subscription, today: LocalDate, onEndTrial:
 
     AnimaCard(contentPadding = PaddingValues(16.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("TRIAL", style = EyebrowStyle, color = warning)
+            Text(stringResource(Res.string.detail_trial), style = EyebrowStyle, color = warning)
             Text(
                 text = when {
-                    days < 0 -> "Trial ended ${relativeDayLabel(days)}"
-                    days == 0 -> "Trial ends today"
-                    else -> "Trial ends ${relativeDayLabel(days)}, on ${trial.endsOn.formatLong()}"
+                    days < 0 -> stringResource(Res.string.detail_trial_ended, relativeDayLabel(days))
+                    days == 0 -> stringResource(Res.string.detail_trial_ends_today)
+                    else -> stringResource(
+                        Res.string.detail_trial_ends_on,
+                        relativeDayLabel(days),
+                        trial.endsOn.formatLong(),
+                    )
                 },
                 style = MaterialTheme.typography.titleSmall,
             )
             Text(
-                text = "You will be reminded ${trial.remindDaysBefore} "
-                    + (if (trial.remindDaysBefore == 1) "day" else "days")
-                    + " before it converts to ${subscription.currentPrice(today).format()}"
-                    + subscription.cycle.shortSuffix + ".",
+                text = pluralStringResource(
+                    Res.plurals.detail_trial_reminder,
+                    trial.remindDaysBefore,
+                    trial.remindDaysBefore,
+                    subscription.currentPrice(today).format(),
+                    subscription.cycle.shortSuffix(),
+                ),
                 style = MaterialTheme.typography.bodySmall,
                 color = AnimaTheme.palette.muted,
             )
             GhostButton(
-                label = "Trial is over — it is a paid plan now",
+                label = stringResource(Res.string.detail_end_trial),
                 onClick = onEndTrial,
                 color = MaterialTheme.colorScheme.onSurface,
             )
@@ -456,23 +495,27 @@ private fun RecordPriceDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Record a price change") },
+        title = { Text(stringResource(Res.string.detail_record_price_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 AnimaTextField(
                     value = amount,
                     onValueChange = { amount = it.filterAmountInput() },
-                    label = "New price",
-                    placeholder = "0.00",
+                    label = stringResource(Res.string.detail_new_price),
+                    placeholder = stringResource(Res.string.detail_price_placeholder),
                     keyboardType = KeyboardType.Decimal,
                     prefix = currency,
                 )
-                DateField(label = "Effective from", date = date, onDateChange = { date = it })
+                DateField(
+                    label = stringResource(Res.string.detail_effective_from),
+                    date = date,
+                    onDateChange = { date = it },
+                )
                 AnimaTextField(
                     value = note,
                     onValueChange = { note = it },
-                    label = "Why (optional)",
-                    placeholder = "Annual increase",
+                    label = stringResource(Res.string.detail_why),
+                    placeholder = stringResource(Res.string.detail_why_placeholder),
                 )
             }
         },
@@ -480,9 +523,11 @@ private fun RecordPriceDialog(
             TextButton(
                 enabled = parsed != null,
                 onClick = { parsed?.let { onConfirm(Money(it, currency), date, note.ifBlank { null }) } },
-            ) { Text("Save") }
+            ) { Text(stringResource(Res.string.common_save)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(Res.string.common_cancel)) }
+        },
     )
 }
 

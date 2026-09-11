@@ -26,6 +26,8 @@ import kotlin.time.Duration.Companion.hours
 class ReminderCoordinator(
     private val notifier: ReminderNotifier,
     private val repository: FinanceRepository,
+    /** Where the notification wording comes from; see [ReminderStrings]. */
+    private val strings: ReminderStrings,
     private val handledStore: HandledReminderStore = InMemoryHandledReminderStore(),
 ) {
     private val _permissionGranted = MutableStateFlow(false)
@@ -38,7 +40,7 @@ class ReminderCoordinator(
 
     suspend fun sync(today: LocalDate = today()) {
         val data = repository.data.value
-        val reminders = buildReminders(data)
+        val reminders = buildReminders(data, strings)
         val knownIds = reminders.mapTo(mutableSetOf()) { it.id }
         val handled = handledStore.load()
 

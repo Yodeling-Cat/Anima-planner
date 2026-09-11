@@ -24,11 +24,13 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.daysUntil
-import lux.uno.anima.finance.formatShort
 import lux.uno.anima.finance.model.Money
 import lux.uno.anima.finance.model.PricePoint
 import lux.uno.anima.finance.model.format
+import lux.uno.anima.resources.*
+import lux.uno.anima.ui.text.formatShort
 import lux.uno.anima.ui.theme.AnimaTheme
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Price over time as a step line: a price holds flat until the day the next one takes over,
@@ -145,7 +147,7 @@ fun PriceHistoryChart(
 
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             AxisLabel(start.formatShort())
-            AxisLabel(if (end == start) "" else "today")
+            AxisLabel(if (end == start) "" else stringResource(Res.string.chart_today))
         }
     }
 }

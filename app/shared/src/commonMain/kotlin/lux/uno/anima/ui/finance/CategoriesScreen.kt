@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import lux.uno.anima.finance.FinanceData
 import lux.uno.anima.finance.model.Category
 import lux.uno.anima.platform.newId
+import lux.uno.anima.resources.*
 import lux.uno.anima.ui.components.AccentSwatches
 import lux.uno.anima.ui.components.AnimaCard
 import lux.uno.anima.ui.components.AnimaTextField
@@ -41,6 +42,8 @@ import lux.uno.anima.ui.components.ScreenSurface
 import lux.uno.anima.ui.theme.AnimaIcons
 import lux.uno.anima.ui.theme.AnimaTheme
 import androidx.compose.runtime.saveable.rememberSaveable
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 
 /** Emoji offered when naming a category. Anything else can be typed into the field. */
 internal val CategoryGlyphChoices = listOf(
@@ -72,18 +75,29 @@ fun CategoriesScreen(
     ScreenSurface(modifier) { contentModifier ->
         Column(contentModifier.safeDrawingPadding().fillMaxSize()) {
             AnimaTopBar(
-                title = "Categories",
+                title = stringResource(Res.string.categories_title),
                 onBack = onBack,
-                actions = { IconAction(AnimaIcons.Plus, "New category", { creating = true }) },
+                actions = {
+                    IconAction(
+                        AnimaIcons.Plus,
+                        stringResource(Res.string.categories_new),
+                        { creating = true },
+                    )
+                },
             )
 
             if (data.categories.isEmpty()) {
                 EmptyState(
                     glyph = "🏷",
-                    title = "No categories",
-                    body = "Categories are what the \"where it goes\" breakdown is built from. "
-                        + "Add the ones that match how you actually think about spending.",
-                    action = { PrimaryButton("Add one", { creating = true }, icon = AnimaIcons.Plus) },
+                    title = stringResource(Res.string.categories_empty_title),
+                    body = stringResource(Res.string.categories_empty_body),
+                    action = {
+                        PrimaryButton(
+                            stringResource(Res.string.categories_empty_action),
+                            { creating = true },
+                            icon = AnimaIcons.Plus,
+                        )
+                    },
                 )
                 return@Column
             }
@@ -105,10 +119,10 @@ fun CategoriesScreen(
                             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                 Text(category.label, style = MaterialTheme.typography.titleSmall)
                                 Text(
-                                    text = when (used) {
-                                        0 -> "Nothing in it yet"
-                                        1 -> "1 subscription"
-                                        else -> "$used subscriptions"
+                                    text = if (used == 0) {
+                                        stringResource(Res.string.categories_nothing_in_it)
+                                    } else {
+                                        pluralStringResource(Res.plurals.categories_used, used, used)
                                     },
                                     style = MaterialTheme.typography.bodySmall,
                                     color = AnimaTheme.palette.muted,
@@ -116,7 +130,10 @@ fun CategoriesScreen(
                             }
                             IconAction(
                                 icon = AnimaIcons.Trash,
-                                contentDescription = "Delete ${category.label}",
+                                contentDescription = stringResource(
+                                    Res.string.category_delete_description,
+                                    category.label,
+                                ),
                                 onClick = { pendingDeleteId = category.id },
                                 tint = AnimaTheme.palette.faint,
                             )
@@ -143,20 +160,31 @@ fun CategoriesScreen(
         val used = usageCount[category.id] ?: 0
         AlertDialog(
             onDismissRequest = { pendingDeleteId = null },
-            title = { Text("Delete ${category.label}?") },
+            title = {
+                Text(stringResource(Res.string.category_delete_title, category.label))
+            },
             text = {
                 Text(
-                    if (used == 0) "Nothing is filed under it."
-                    else "$used subscription${if (used == 1) "" else "s"} will become uncategorised. "
-                        + "Nothing else about them changes.",
+                    if (used == 0) {
+                        stringResource(Res.string.category_delete_unused)
+                    } else {
+                        pluralStringResource(Res.plurals.category_delete_used, used, used)
+                    },
                 )
             },
             confirmButton = {
                 TextButton(onClick = { onDelete(category.id); pendingDeleteId = null }) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                    Text(
+                        stringResource(Res.string.common_delete),
+                        color = MaterialTheme.colorScheme.error,
+                    )
                 }
             },
-            dismissButton = { TextButton(onClick = { pendingDeleteId = null }) { Text("Keep") } },
+            dismissButton = {
+                TextButton(onClick = { pendingDeleteId = null }) {
+                    Text(stringResource(Res.string.common_keep))
+                }
+            },
         )
     }
 }
@@ -174,7 +202,15 @@ fun CategoryDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (existing == null) "New category" else "Edit ${existing.label}") },
+        title = {
+            Text(
+                if (existing == null) {
+                    stringResource(Res.string.categories_new)
+                } else {
+                    stringResource(Res.string.category_edit, existing.label)
+                },
+            )
+        },
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
@@ -183,8 +219,8 @@ fun CategoryDialog(
                 AnimaTextField(
                     value = label,
                     onValueChange = { label = it },
-                    label = "Name",
-                    placeholder = "Coffee",
+                    label = stringResource(Res.string.category_name),
+                    placeholder = stringResource(Res.string.category_name_placeholder),
                 )
                 EmojiStrip(
                     selected = glyph,
@@ -213,8 +249,10 @@ fun CategoryDialog(
                         ),
                     )
                 },
-            ) { Text("Save") }
+            ) { Text(stringResource(Res.string.common_save)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(Res.string.common_cancel)) }
+        },
     )
 }

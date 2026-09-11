@@ -53,7 +53,7 @@ private class AndroidReminderNotifier : ReminderNotifier {
         val alarms = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager
             ?: return@withContext
         (context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager)
-            ?.let(::ensureChannel)
+            ?.let { ensureChannel(context, it) }
 
         val previous = preferences.getStringSet(KEY_SCHEDULED, emptySet()).orEmpty()
         val wanted = reminders.mapTo(mutableSetOf()) { it.id }

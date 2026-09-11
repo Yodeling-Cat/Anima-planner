@@ -23,6 +23,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import lux.uno.anima.dev.AppEnvironment
+import lux.uno.anima.resources.*
 import lux.uno.anima.sync.AccountResult
 import lux.uno.anima.sync.SyncStatus
 import lux.uno.anima.ui.components.AnimaTextField
@@ -31,7 +32,11 @@ import lux.uno.anima.ui.components.FormSection
 import lux.uno.anima.ui.components.GhostButton
 import lux.uno.anima.ui.components.PrimaryButton
 import lux.uno.anima.ui.components.ScreenSurface
+import lux.uno.anima.ui.text.label
 import lux.uno.anima.ui.theme.AnimaTheme
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 
 /** Everything the account screen needs to know, so it stays free of wiring. */
 data class AccountState(
@@ -57,7 +62,7 @@ fun AccountScreen(
 ) {
     ScreenSurface(modifier) { contentModifier ->
         Column(contentModifier.safeDrawingPadding().fillMaxSize()) {
-            AnimaTopBar(title = "Account", onBack = onBack)
+            AnimaTopBar(title = stringResource(Res.string.account_title), onBack = onBack)
 
             Column(
                 modifier = Modifier
@@ -79,10 +84,9 @@ fun AccountScreen(
 
 @Composable
 private fun NoServerSection(environment: AppEnvironment) {
-    FormSection(environment.label) {
+    FormSection(environment.label()) {
         Text(
-            "This environment keeps everything on this device and never syncs, so there is " +
-                "no account to sign in to.",
+            stringResource(Res.string.account_no_server_body),
             style = MaterialTheme.typography.bodyMedium,
             color = AnimaTheme.palette.muted,
         )
@@ -101,24 +105,23 @@ private fun SignInSection(
     var password by rememberSaveable { mutableStateOf("") }
     val canSubmit = email.isNotBlank() && password.isNotBlank() && !state.busy
 
-    FormSection("Sign in") {
+    FormSection(stringResource(Res.string.account_sign_in)) {
         Text(
-            "Your subscriptions are on this device already. Signing in is what keeps them " +
-                "the same on your other ones.",
+            stringResource(Res.string.account_sign_in_body),
             style = MaterialTheme.typography.bodySmall,
             color = AnimaTheme.palette.muted,
         )
         AnimaTextField(
             value = email,
             onValueChange = { email = it },
-            label = "Email",
-            placeholder = "you@example.com",
+            label = stringResource(Res.string.account_email),
+            placeholder = stringResource(Res.string.account_email_placeholder),
             keyboardType = KeyboardType.Email,
         )
         AnimaTextField(
             value = password,
             onValueChange = { password = it },
-            label = "Password",
+            label = stringResource(Res.string.account_password),
             keyboardType = KeyboardType.Password,
             visualTransformation = PasswordVisualTransformation(),
         )
@@ -126,18 +129,18 @@ private fun SignInSection(
         state.message?.let { Message(it) }
 
         PrimaryButton(
-            label = if (state.busy) "Working…" else "Sign in",
+            label = stringResource(if (state.busy) Res.string.account_working else Res.string.account_sign_in),
             onClick = { onSignIn(email, password) },
             enabled = canSubmit,
             modifier = Modifier.fillMaxWidth(),
         )
         GhostButton(
-            label = "Create an account",
+            label = stringResource(Res.string.account_create),
             onClick = { onRegister(email, password) },
             modifier = Modifier.fillMaxWidth(),
         )
         Text(
-            "Signing in to ${state.environment.serverUrl}",
+            stringResource(Res.string.account_signing_in_to, state.environment.serverUrl.orEmpty()),
             style = MaterialTheme.typography.bodySmall,
             color = AnimaTheme.palette.faint,
         )
@@ -152,8 +155,11 @@ private fun SignedInSection(
 ) {
     var confirming by rememberSaveable { mutableStateOf(false) }
 
-    FormSection("Signed in") {
-        Text(state.email ?: "Signed in", style = MaterialTheme.typography.bodyMedium)
+    FormSection(stringResource(Res.string.account_signed_in)) {
+        Text(
+            state.email ?: stringResource(Res.string.account_signed_in),
+            style = MaterialTheme.typography.bodyMedium,
+        )
         Text(
             state.environment.serverUrl.orEmpty(),
             style = MaterialTheme.typography.bodySmall,
@@ -164,14 +170,14 @@ private fun SignedInSection(
 
     SyncSection(state, onSyncNow)
 
-    FormSection("Sign out") {
+    val signOut = stringResource(Res.string.account_sign_out)
+    FormSection(signOut) {
         Text(
-            "Ends the session on this device. Your subscriptions stay here unless you ask " +
-                "for them to be removed.",
+            stringResource(Res.string.account_sign_out_body),
             style = MaterialTheme.typography.bodySmall,
             color = AnimaTheme.palette.muted,
         )
-        GhostButton("Sign out", { confirming = true }, modifier = Modifier.fillMaxWidth())
+        GhostButton(signOut, { confirming = true }, modifier = Modifier.fillMaxWidth())
     }
 
     if (confirming) {
@@ -188,14 +194,18 @@ private fun SignedInSection(
 
 @Composable
 private fun SyncSection(state: AccountState, onSyncNow: () -> Unit) {
-    FormSection("Sync") {
+    FormSection(stringResource(Res.string.account_sync)) {
         Text(state.headline(), style = MaterialTheme.typography.titleSmall)
         Text(
             state.detail(),
             style = MaterialTheme.typography.bodySmall,
             color = AnimaTheme.palette.muted,
         )
-        GhostButton("Sync now", onSyncNow, modifier = Modifier.fillMaxWidth())
+        GhostButton(
+            stringResource(Res.string.account_sync_now),
+            onSyncNow,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 
@@ -204,25 +214,28 @@ private fun SyncSection(state: AccountState, onSyncNow: () -> Unit) {
  * to be able to tell which one they are in. Collapsing them into one "not synced" is how a
  * sync app stops being believed.
  */
+@Composable
 private fun AccountState.headline(): String = when {
-    syncStatus == SyncStatus.Syncing -> "Syncing"
-    syncStatus == SyncStatus.Failed -> "Last attempt failed"
-    syncStatus == SyncStatus.Offline && pendingCount > 0 -> "$pendingCount waiting to go up"
-    syncStatus == SyncStatus.Offline -> "Cannot reach the server"
-    pendingCount > 0 -> "$pendingCount waiting to go up"
-    else -> "Up to date"
+    syncStatus == SyncStatus.Syncing -> stringResource(Res.string.sync_headline_syncing)
+    syncStatus == SyncStatus.Failed -> stringResource(Res.string.sync_headline_failed)
+    syncStatus == SyncStatus.Offline && pendingCount > 0 ->
+        pluralStringResource(Res.plurals.sync_headline_pending, pendingCount, pendingCount)
+    syncStatus == SyncStatus.Offline -> stringResource(Res.string.sync_headline_offline)
+    pendingCount > 0 ->
+        pluralStringResource(Res.plurals.sync_headline_pending, pendingCount, pendingCount)
+    else -> stringResource(Res.string.sync_headline_up_to_date)
 }
 
-private fun AccountState.detail(): String = when {
-    syncStatus == SyncStatus.Syncing -> "Sending and collecting changes."
-    syncStatus == SyncStatus.Failed ->
-        "The server was reached and refused the exchange. Nothing here has been lost."
-    syncStatus == SyncStatus.Offline ->
-        "Everything still works. Changes are kept here and go up when the server can be " +
-            "reached again."
-    pendingCount > 0 -> "Changes made here have not reached the server yet."
-    else -> "Everything here has reached the server."
-}
+@Composable
+private fun AccountState.detail(): String = stringResource(
+    when {
+        syncStatus == SyncStatus.Syncing -> Res.string.sync_detail_syncing
+        syncStatus == SyncStatus.Failed -> Res.string.sync_detail_failed
+        syncStatus == SyncStatus.Offline -> Res.string.sync_detail_offline
+        pendingCount > 0 -> Res.string.sync_detail_pending
+        else -> Res.string.sync_detail_up_to_date
+    },
+)
 
 @Composable
 private fun SignOutDialog(
@@ -232,17 +245,17 @@ private fun SignOutDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Sign out?") },
+        title = { Text(stringResource(Res.string.account_sign_out_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(
-                    "Your subscriptions stay on this device, and your email address is " +
-                        "remembered so signing back in only asks for a password.",
-                )
+                Text(stringResource(Res.string.account_sign_out_dialog_body))
                 if (pendingCount > 0) {
                     Text(
-                        "$pendingCount change${if (pendingCount == 1) "" else "s"} here " +
-                            "hasn't reached the server yet. Removing them now would lose them.",
+                        pluralStringResource(
+                            Res.plurals.account_sign_out_pending,
+                            pendingCount,
+                            pendingCount,
+                        ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error,
                     )
@@ -251,12 +264,16 @@ private fun SignOutDialog(
         },
         // Keeping the data is the confirm button, because it is the one that cannot go
         // wrong. Removing it is offered as the quieter option, never the default.
-        confirmButton = { TextButton(onClick = { onSignOut(false) }) { Text("Sign out, keep data") } },
+        confirmButton = {
+            TextButton(onClick = { onSignOut(false) }) {
+                Text(stringResource(Res.string.account_sign_out_keep_data))
+            }
+        },
         dismissButton = {
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                TextButton(onClick = onDismiss) { Text("Cancel") }
+                TextButton(onClick = onDismiss) { Text(stringResource(Res.string.common_cancel)) }
                 TextButton(onClick = { onSignOut(true) }) {
-                    Text("Remove data", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(Res.string.account_remove_data), color = MaterialTheme.colorScheme.error)
                 }
             }
         },
@@ -268,18 +285,18 @@ private fun Message(text: String) {
     Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
 }
 
-/** Turns a result into something worth reading. Null means it worked. */
-fun AccountResult.message(): String? = when (this) {
+/**
+ * Turns a result into something worth reading. Null means it worked.
+ *
+ * Suspending rather than composable because it is called from the coroutine that made the
+ * request: the message is resolved once, there and then, and kept as state.
+ */
+suspend fun AccountResult.message(): String? = when (this) {
     AccountResult.Success -> null
-    AccountResult.Rejected -> "That email and password do not match an account."
-    AccountResult.RegistrationClosed ->
-        "This server is not accepting new accounts. Ask whoever runs it for a join " +
-            "password, or sign in with an account that already exists."
-    AccountResult.WrongJoinPassword ->
-        "That join password is wrong. It is set in the developer screen under the server " +
-            "address, and whoever runs the server can tell you what it should be."
-    AccountResult.Unreachable ->
-        "Could not reach the server. Check the address in the developer screen, or try again " +
-            "when you are back online."
+    AccountResult.Rejected -> getString(Res.string.account_error_rejected)
+    AccountResult.RegistrationClosed -> getString(Res.string.account_error_registration_closed)
+    AccountResult.WrongJoinPassword -> getString(Res.string.account_error_wrong_join_password)
+    AccountResult.Unreachable -> getString(Res.string.account_error_unreachable)
+    // Whatever the server said, which is the one string in the app no translation reaches.
     is AccountResult.Refused -> reason
 }

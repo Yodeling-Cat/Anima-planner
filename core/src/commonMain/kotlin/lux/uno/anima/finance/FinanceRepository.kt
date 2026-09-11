@@ -28,6 +28,15 @@ class FinanceRepository(
     private val scope: CoroutineScope,
     private val seedWhenEmpty: () -> FinanceData? = { null },
     /**
+     * The starting categories a brand new dataset is seeded with.
+     *
+     * Passed in rather than read from [Category.defaults] directly so the UI can hand over
+     * the same ids, glyphs and colours with the labels in the reader's language. Ids and
+     * stamps are what sync cares about, and those are identical either way, so two devices
+     * set up in different languages still converge on one list.
+     */
+    private val seedCategories: List<Category> = Category.defaults(),
+    /**
      * Stamps every change so another device can tell which version is newer.
      *
      * Deliberately has no default. Its node id has to be the one stored in `SyncState`, and
@@ -56,9 +65,9 @@ class FinanceRepository(
 
     suspend fun load() {
         val onDisk = store.load()
-        val stored = onDisk?.migrated()
+        val stored = onDisk?.migrated(seedCategories)
         val migrating = (onDisk?.schemaVersion ?: FINANCE_SCHEMA_VERSION) < STABLE_NODE_SCHEMA_VERSION
-        val loaded = stored ?: seedWhenEmpty() ?: emptyFinanceData()
+        val loaded = stored ?: seedWhenEmpty() ?: emptyFinanceData(seedCategories)
 
         // Carry the clock past every reading in the file before issuing any of its own. The
         // highest stamp on disk is in effect the last reading this device gave out, so it
@@ -239,7 +248,7 @@ class FinanceRepository(
      * signing back in pulls the real data down rather than pushing a blank slate over it.
      */
     suspend fun resetLocalData() {
-        val fresh = emptyFinanceData()
+        val fresh = emptyFinanceData(seedCategories)
         _data.value = fresh
         writeLock.withLock { store.save(fresh) }
     }

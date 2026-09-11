@@ -1,0 +1,6 @@
+<resources>
+    <!-- The notification channel, as it appears in the Android system settings. Resolved by
+         name at runtime so this module still needs no generated R class of its own. -->
+    <string name="anima_reminder_channel_name">Reminders</string>
+    <string name="anima_reminder_channel_description">Card expiry and other dated reminders</string>
+</resources>

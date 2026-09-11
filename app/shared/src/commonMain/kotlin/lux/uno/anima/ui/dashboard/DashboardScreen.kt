@@ -30,8 +30,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import lux.uno.anima.finance.currentHour
-import lux.uno.anima.finance.formatLong
 import lux.uno.anima.finance.today
+import lux.uno.anima.resources.*
+import lux.uno.anima.ui.text.formatLong
 import lux.uno.anima.ui.components.Pill
 import lux.uno.anima.ui.components.ScreenSurface
 import lux.uno.anima.ui.theme.AnimaTheme
@@ -40,6 +41,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import lux.uno.anima.ui.components.IconAction
 import lux.uno.anima.ui.theme.AnimaIcons
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 
 /** The handful of finance numbers the dashboard shows without opening the section. */
 data class FinanceGlance(
@@ -101,7 +104,7 @@ fun DashboardScreen(
 @Composable
 private fun AccountDoor(syncDot: Color?, onClick: () -> Unit) {
     Box {
-        IconAction(AnimaIcons.Person, "Account", onClick)
+        IconAction(AnimaIcons.Person, stringResource(Res.string.dashboard_account), onClick)
         if (syncDot != null) {
             Box(
                 Modifier
@@ -118,14 +121,16 @@ private fun AccountDoor(syncDot: Color?, onClick: () -> Unit) {
 @Composable
 private fun Greeting(modifier: Modifier = Modifier) {
     val hour = currentHour()
-    val salutation = when (hour) {
-        in 0..4 -> "Still up"
-        in 5..11 -> "Good morning"
-        in 12..17 -> "Good afternoon"
-        else -> "Good evening"
-    }
+    val salutation = stringResource(
+        when (hour) {
+            in 0..4 -> Res.string.greeting_still_up
+            in 5..11 -> Res.string.greeting_morning
+            in 12..17 -> Res.string.greeting_afternoon
+            else -> Res.string.greeting_evening
+        },
+    )
     Column(modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text("ANIMA", style = EyebrowStyle, color = AnimaTheme.palette.faint)
+        Text(stringResource(Res.string.dashboard_eyebrow), style = EyebrowStyle, color = AnimaTheme.palette.faint)
         Text(
             text = salutation,
             style = MaterialTheme.typography.displayMedium,
@@ -164,7 +169,11 @@ private fun FinanceDoor(
                 )
                 if (glance.alertCount > 0) {
                     Pill(
-                        text = if (glance.alertCount == 1) "1 trial ending" else "${glance.alertCount} trials ending",
+                        text = pluralStringResource(
+                            Res.plurals.dashboard_trials_ending,
+                            glance.alertCount,
+                            glance.alertCount,
+                        ),
                         accent = AnimaTheme.palette.warning,
                         leading = "•",
                     )
@@ -181,17 +190,21 @@ private fun FinanceDoor(
                         )
                         Spacer(Modifier.width(6.dp))
                         Text(
-                            text = "per month",
+                            text = stringResource(Res.string.dashboard_per_month),
                             style = MaterialTheme.typography.bodyMedium,
                             color = AnimaTheme.palette.muted,
                             modifier = Modifier.padding(bottom = 5.dp),
                         )
                     }
                     Text(
-                        text = buildString {
-                            append(glance.subscriptionCount)
-                            append(if (glance.subscriptionCount == 1) " subscription" else " subscriptions")
-                            if (glance.nextChargeLabel != null) append(" · ${glance.nextChargeLabel}")
+                        text = pluralStringResource(
+                            Res.plurals.dashboard_subscription_count,
+                            glance.subscriptionCount,
+                            glance.subscriptionCount,
+                        ).let { count ->
+                            glance.nextChargeLabel?.let {
+                                stringResource(Res.string.dashboard_glance_with_next, count, it)
+                            } ?: count
                         },
                         style = MaterialTheme.typography.bodyMedium,
                         color = AnimaTheme.palette.muted,
