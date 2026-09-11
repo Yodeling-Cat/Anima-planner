@@ -46,7 +46,7 @@
     <string name="date_long">%1$s. %2$s %3$s</string>
     <string name="date_short">%1$s. %2$s</string>
     <string name="date_short_with_year">%1$s. %2$s %3$s</string>
-    <string name="date_month_year">%1$s \'%2$s</string>
+    <string name="date_month_year">%1$s '%2$s</string>
 
     <string name="relative_today">dnes</string>
     <string name="relative_tomorrow">zajtra</string>
@@ -236,7 +236,7 @@
     <string name="developer_shake_title">Otvorenie tejto obrazovky</string>
     <string name="developer_shake_body">Toto zariadenie nemá akcelerometer, takže gesto zatrasením nie je dostupné. Namiesto neho obrazovku otvorí Ctrl+Shift+D.</string>
     <string name="developer_address">Adresa</string>
-    <string name="developer_address_body">Nechajte prázdne pre návrat k zabudovanej adrese. Telefón nedosiahne notebook so serverom cez \"localhost\" — použite jeho adresu v sieti.</string>
+    <string name="developer_address_body">Nechajte prázdne pre návrat k zabudovanej adrese. Telefón nedosiahne notebook so serverom cez "localhost" — použite jeho adresu v sieti.</string>
     <string name="developer_join_password">Prístupové heslo</string>
     <string name="developer_join_password_placeholder">Potrebné len pri vytvorení účtu</string>
     <string name="developer_join_password_body">Súkromný server oň žiada nových používateľov. Jeho správca vám povie, aké je. Nie je to heslo k vášmu účtu a používa sa len pri vytváraní účtu — na prihlásenie potom nikdy netreba.</string>
@@ -330,7 +330,7 @@
     <string name="categories_title">Kategórie</string>
     <string name="categories_new">Nová kategória</string>
     <string name="categories_empty_title">Žiadne kategórie</string>
-    <string name="categories_empty_body">Z kategórií je postavený rozpis \"kam to ide\". Pridajte tie, ktoré zodpovedajú tomu, ako o výdavkoch naozaj rozmýšľate.</string>
+    <string name="categories_empty_body">Z kategórií je postavený rozpis "kam to ide". Pridajte tie, ktoré zodpovedajú tomu, ako o výdavkoch naozaj rozmýšľate.</string>
     <string name="categories_empty_action">Pridať jednu</string>
     <string name="categories_nothing_in_it">Zatiaľ v nej nič nie je</string>
     <plurals name="categories_used">
@@ -402,7 +402,7 @@
     <string name="editor_what_it_costs">Koľko stojí</string>
     <string name="editor_amount">Suma</string>
     <string name="editor_amount_placeholder">0,00</string>
-    <string name="editor_price_note">Zmena sumy tu opraví dnešnú cenu. Ak chcete v histórii ponechať aj starú cenu, použite radšej \"Zaznamenať zmenu\" na obrazovke s podrobnosťami.</string>
+    <string name="editor_price_note">Zmena sumy tu opraví dnešnú cenu. Ak chcete v histórii ponechať aj starú cenu, použite radšej "Zaznamenať zmenu" na obrazovke s podrobnosťami.</string>
     <string name="editor_how_often">Ako často</string>
     <string name="editor_next_charge">Najbližšia platba</string>
     <string name="editor_trial">Skúšobná verzia</string>

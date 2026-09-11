@@ -58,7 +58,7 @@
     <!-- day, short month, year -->
     <string name="date_short_with_year">%1$s %2$s %3$s</string>
     <!-- short month, two-digit year -->
-    <string name="date_month_year">%1$s \'%2$s</string>
+    <string name="date_month_year">%1$s '%2$s</string>
 
     <!-- How far away a day is -->
     <string name="relative_today">today</string>
@@ -198,8 +198,8 @@
     <string name="account_sign_out_title">Sign out?</string>
     <string name="account_sign_out_dialog_body">Your subscriptions stay on this device, and your email address is remembered so signing back in only asks for a password.</string>
     <plurals name="account_sign_out_pending">
-        <item quantity="one">%1$d change here hasn\'t reached the server yet. Removing it now would lose it.</item>
-        <item quantity="other">%1$d changes here haven\'t reached the server yet. Removing them now would lose them.</item>
+        <item quantity="one">%1$d change here hasn't reached the server yet. Removing it now would lose it.</item>
+        <item quantity="other">%1$d changes here haven't reached the server yet. Removing them now would lose them.</item>
     </plurals>
     <string name="account_sign_out_keep_data">Sign out, keep data</string>
     <string name="account_remove_data">Remove data</string>
@@ -246,7 +246,7 @@
     <string name="developer_shake_title">Opening this screen</string>
     <string name="developer_shake_body">This device has no accelerometer, so the shake gesture is unavailable. Ctrl+Shift+D opens this screen instead.</string>
     <string name="developer_address">Address</string>
-    <string name="developer_address_body">Leave empty to go back to the built-in address. A phone cannot reach the laptop running the server on \"localhost\" — use its address on the network.</string>
+    <string name="developer_address_body">Leave empty to go back to the built-in address. A phone cannot reach the laptop running the server on "localhost" — use its address on the network.</string>
     <string name="developer_join_password">Join password</string>
     <string name="developer_join_password_placeholder">Only needed to create an account</string>
     <string name="developer_join_password_body">A private server asks newcomers for this. Whoever runs it can tell you what it is. It is not your account password and is only used when creating an account — signing in afterwards never needs it.</string>
@@ -350,7 +350,7 @@
     <string name="categories_title">Categories</string>
     <string name="categories_new">New category</string>
     <string name="categories_empty_title">No categories</string>
-    <string name="categories_empty_body">Categories are what the \"where it goes\" breakdown is built from. Add the ones that match how you actually think about spending.</string>
+    <string name="categories_empty_body">Categories are what the "where it goes" breakdown is built from. Add the ones that match how you actually think about spending.</string>
     <string name="categories_empty_action">Add one</string>
     <string name="categories_nothing_in_it">Nothing in it yet</string>
     <plurals name="categories_used">
@@ -426,7 +426,7 @@
     <string name="editor_what_it_costs">What it costs</string>
     <string name="editor_amount">Amount</string>
     <string name="editor_amount_placeholder">0.00</string>
-    <string name="editor_price_note">Changing the amount here corrects today\'s price. To keep the old price in the history, use \"Record change\" on the detail screen instead.</string>
+    <string name="editor_price_note">Changing the amount here corrects today's price. To keep the old price in the history, use "Record change" on the detail screen instead.</string>
     <string name="editor_how_often">How often</string>
     <string name="editor_next_charge">Next charge</string>
     <string name="editor_trial">Trial</string>
