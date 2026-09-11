@@ -16,8 +16,12 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
+import io.ktor.server.sse.sse
+import io.ktor.sse.ServerSentEvent
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.Serializable
 import lux.uno.anima.Admission
 import lux.uno.anima.Limits
@@ -27,6 +31,7 @@ import lux.uno.anima.server.auth.IssuedSession
 import lux.uno.anima.server.auth.Principal
 import lux.uno.anima.server.auth.RegisterResult
 import lux.uno.anima.server.blobs.BlobStore
+import lux.uno.anima.server.sync.SyncNotifier
 import lux.uno.anima.server.sync.SyncStore
 import lux.uno.anima.sync.SyncRequest
 
@@ -69,6 +74,7 @@ fun Route.animaRoutes(
     accounts: Accounts,
     records: SyncStore,
     blobs: BlobStore,
+    notifier: SyncNotifier = SyncNotifier(),
 ) {
     get("/health") { call.respond(HttpStatusCode.OK, mapOf("status" to "ok")) }
 
@@ -142,7 +148,46 @@ fun Route.animaRoutes(
                 )
                 return@post
             }
-            call.respond(records.sync(userId, request.copy(since = request.since.coerceAtLeast(0))))
+            val response = records.sync(userId, request.copy(since = request.since.coerceAtLeast(0)))
+            call.respond(response)
+            // After the response, and never in place of it: a device's own sync must not
+            // depend on whether anyone else was listening. Every device of this user hears
+            // it, the pusher included — it will recognise its own cursor and stay put.
+            notifier.notify(userId, response.cursor)
+        }
+
+        /**
+         * Says when this user's feed moved, so the other devices do not have to keep asking.
+         *
+         * The event carries the new cursor and nothing else. A device compares it with the
+         * one it holds and calls `/sync` if it is behind, which means this endpoint never
+         * has to send a record — and so never has to be trusted with one.
+         */
+        sse("/sync/events") {
+            val userId = call.userId()
+            val channel = notifier.subscribe(userId)
+            try {
+                // The connection itself is the first signal. A device reaching the server
+                // again after being away is behind by definition, and waiting for the next
+                // edit to tell it so would leave it stale for as long as nobody typed.
+                send(ServerSentEvent(event = CONNECTED_EVENT, data = "ok"))
+                while (true) {
+                    val cursor = withTimeoutOrNull(HEARTBEAT_MILLIS) { channel.receive() }
+                    if (cursor == null) {
+                        // Nothing to say, said out loud. A proxy that sees no bytes for a
+                        // few minutes closes the connection, and the device would not find
+                        // out until the next edit failed to arrive.
+                        send(ServerSentEvent(comments = "keep-alive"))
+                    } else {
+                        send(ServerSentEvent(event = CHANGED_EVENT, data = cursor.toString()))
+                    }
+                }
+            } catch (_: ClosedReceiveChannelException) {
+                // This connection was dropped to make room under the per-user cap. Ending
+                // quietly is the whole response: the device reconnects and takes a new slot.
+            } finally {
+                notifier.unsubscribe(userId, channel)
+            }
         }
 
         post("/blobs/missing") {
@@ -176,6 +221,16 @@ fun Route.animaRoutes(
         }
     }
 }
+
+/** Named on both sides: `core`'s KtorSyncEvents branches on exactly these. */
+private const val CONNECTED_EVENT = "connected"
+private const val CHANGED_EVENT = "changed"
+
+/**
+ * Well under the minute most proxies and mobile networks idle a connection out at, and far
+ * enough above it to cost nothing: one comment every 25 seconds per connected device.
+ */
+private const val HEARTBEAT_MILLIS = 25_000L
 
 private fun IssuedSession.toBody() =
     SessionBody(token, expiresAtMillis)

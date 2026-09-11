@@ -1,6 +1,7 @@
 package lux.uno.anima.sync
 
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.sse.SSE
 import io.ktor.client.request.header
 import io.ktor.client.request.get
 import io.ktor.client.request.post
@@ -222,5 +223,13 @@ class KtorSyncApi(private val client: HttpClient, private val baseUrl: String) :
     }
 }
 
-/** A client with the defaults every Anima call expects. Bodies are handled by [KtorSyncApi]. */
-fun animaHttpClient(): HttpClient = HttpClient()
+/**
+ * A client with the defaults every Anima call expects. Bodies are handled by [KtorSyncApi].
+ *
+ * The one plugin is SSE, which unlike content negotiation cannot be done by hand: an event
+ * stream is a framing, not a body. [KtorSyncEvents] needs it installed on whatever client
+ * it is handed, so it is installed here rather than left to each caller to remember.
+ */
+fun animaHttpClient(): HttpClient = HttpClient {
+    install(SSE)
+}

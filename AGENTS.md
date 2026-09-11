@@ -99,6 +99,28 @@ user meant — merges never prompt.
   conflict resolution, and a cached image can never be stale. Blobs move only after records
   have settled, and only ones a live record still points at.
 
+### When a device syncs
+
+Four triggers, and between them a device should never be showing stale data while it has a
+connection:
+
+1. **Launch**, once the local dataset has loaded.
+2. **Every local edit**, debounced two seconds in `SyncEngine.requestSync`.
+3. **Coming back to the foreground** — a phone's connections do not survive being
+   backgrounded, and the live channel may not have noticed yet.
+4. **The server saying so.** `GET /sync/events` is a server-sent event stream that
+   announces this user's new cursor to their other devices; `LiveSync` compares it with the
+   one it holds and calls `/sync` if it is behind.
+
+The event carries a number and nothing else — never a record — so the live channel cannot
+become a second way for data to arrive, and nothing about it has to change when payloads
+become ciphertext. It is SSE rather than a WebSocket because the traffic only goes one way
+and plain HTTP is what a self-hoster's reverse proxy passes through without being told to.
+
+A device hears its own push announced too, and ignores it: the cursor is one it already
+holds. Treating that as news would make every edit cost two round trips on the device that
+made it.
+
 The one exception to whole-record replacement is `Subscription.priceHistory`: it is
 merged as a union keyed by `effectiveFrom`, because record-level LWW would otherwise
 drop a price point recorded on the other device.

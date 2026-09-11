@@ -40,6 +40,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.isShiftPressed
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import lux.uno.anima.dev.AppEnvironment
@@ -64,6 +66,8 @@ import lux.uno.anima.sync.HybridClock
 import lux.uno.anima.platform.createSecretStore
 import lux.uno.anima.sync.JsonFileSyncStateStore
 import lux.uno.anima.sync.KtorSyncApi
+import lux.uno.anima.sync.KtorSyncEvents
+import lux.uno.anima.sync.LiveSync
 import lux.uno.anima.finance.sync.recordsToPush
 import lux.uno.anima.platform.newId
 import lux.uno.anima.sync.Account
@@ -163,10 +167,17 @@ private fun Anima(
         )
     }
 
+    // One client for every call this environment makes, live channel included. Two would
+    // mean two connection pools and two sets of sockets to the same host.
+    val http = remember(environment.id) { animaHttpClient() }
+
     // A null api is the sandbox, which has no server by design — the engine answers
     // NotConfigured rather than treating it as a failure.
-    val api = remember(environment.serverUrl) {
-        environment.serverUrl?.let { KtorSyncApi(animaHttpClient(), it) }
+    val api = remember(http, environment.serverUrl) {
+        environment.serverUrl?.let { KtorSyncApi(http, it) }
+    }
+    val events = remember(http, environment.serverUrl) {
+        environment.serverUrl?.let { KtorSyncEvents(http, it) }
     }
     val engine = remember(repository, api, iconImages) {
         SyncEngine(
@@ -237,6 +248,34 @@ private fun Anima(
     val localEdits by repository.localEdits.collectAsStateWithLifecycle()
     LaunchedEffect(localEdits) {
         if (localEdits > 0) engine.requestSync(scope)
+    }
+
+    // The other half of that: edits made on another device. Without this, a device that is
+    // only being read from stays on whatever it last pulled, because nothing local ever
+    // asks. Runs only while signed in, and is torn down with the session — there is nothing
+    // to listen to without a token, and the server would refuse the connection anyway.
+    val live = remember(engine, events) {
+        LiveSync(engine, events, secrets, environment.sessionTokenKey)
+    }
+    LaunchedEffect(live, signedIn) {
+        if (signedIn) live.run()
+    }
+
+    // Coming back to the app is the one moment a device is most likely to be stale and
+    // least likely to be told: a phone's connection does not survive being backgrounded,
+    // and the live channel may not have noticed yet. Skipping the first one because the
+    // launch effect above already syncs — and does it after the dataset has loaded, which
+    // this cannot promise.
+    var syncedOnStart by remember { mutableStateOf(false) }
+    LifecycleEventEffect(Lifecycle.Event.ON_START) {
+        if (syncedOnStart) scope.launch { engine.syncNow() } else syncedOnStart = true
+    }
+
+    // Closed with the environment it belongs to. A switch rebuilds everything below it, and
+    // a client left open would keep its connections — including a live one — to the server
+    // the app just stopped using.
+    DisposableEffect(http) {
+        onDispose { http.close() }
     }
 
     // A second of deliberate shaking, or Ctrl+Shift+D where there is no accelerometer.

@@ -155,3 +155,37 @@ about it rather than showing a status code.
 Created an account from the app, added sample data, and watched the debounced sync push all
 19 records. Then signed out keeping data: the token left secure storage and all seven
 subscriptions stayed. Covered by `AccountTest` (9).
+
+---
+
+## Live sync — the server says when
+
+**Done.** Before this, nothing pulled. A device caught up at launch, when it made its own
+edit, and when somebody pressed Sync now — so a phone left open on the dashboard showed
+whatever it last pulled until it was touched. Pushing was already immediate; only the other
+direction was missing.
+
+`GET /sync/events` is a server-sent event stream. `SyncNotifier` holds one conflated channel
+per connected device, `POST /sync` announces the new cursor on it after answering, and
+`LiveSync` on the device compares that cursor with its own and calls `/sync` if it is behind.
+The event is a number — never a record — so nothing about the data boundary moves.
+
+Also added: a sync when the app returns to the foreground, which is the moment a device is
+most likely to be stale and least likely to be told.
+
+### Choices worth keeping
+
+- **SSE, not a WebSocket.** One-way traffic, plain HTTP, and no upgrade handshake for a
+  self-hoster's reverse proxy to be configured for.
+- **A 25-second keep-alive comment.** Under what proxies and mobile networks idle out.
+- **Reconnect backoff is the client's**, 3s doubling to 2 minutes, reset by any connection
+  that produced an event. The flow ends rather than retrying inside itself, so a stopped
+  listener is actually stopped.
+- **A 401 on the channel ends it quietly.** Tokens are dropped in exactly one place — a
+  refused `/sync` — and two places deciding that is how a session gets half-dropped.
+- **Eight listeners per account**, oldest dropped. Past that it is leaked connections
+  rather than hardware.
+
+Covered by `LiveSyncTest` (7) and `LiveEventsTest` (3), the latter driving the real client
+against the real routes — including that one account's push tells another account nothing.
+

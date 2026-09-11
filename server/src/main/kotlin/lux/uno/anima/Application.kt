@@ -20,6 +20,7 @@ import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
 import io.ktor.server.response.respond
 import io.ktor.server.routing.routing
+import io.ktor.server.sse.SSE
 import kotlinx.serialization.json.Json
 import lux.uno.anima.server.ErrorBody
 import lux.uno.anima.server.animaRoutes
@@ -27,6 +28,7 @@ import lux.uno.anima.server.auth.Accounts
 import lux.uno.anima.server.backup.Backups
 import lux.uno.anima.server.blobs.BlobStore
 import lux.uno.anima.server.db.Database
+import lux.uno.anima.server.sync.SyncNotifier
 import lux.uno.anima.server.sync.SyncStore
 import org.slf4j.event.Level
 import kotlin.time.Duration.Companion.hours
@@ -44,6 +46,7 @@ fun Application.module(config: ServerConfig = ServerConfig.fromEnvironment()) {
     val accounts = Accounts(database)
     val records = SyncStore(database)
     val blobs = BlobStore(database, config.blobDirectory)
+    val notifier = SyncNotifier()
 
     monitor.subscribe(io.ktor.server.application.ApplicationStopped) { database.close() }
 
@@ -90,6 +93,10 @@ fun Application.module(config: ServerConfig = ServerConfig.fromEnvironment()) {
         }
     }
 
+    // Nothing to configure: the live channel holds its own connections open and sends its
+    // own keep-alives, so the plugin is here only to make `sse {}` a route.
+    install(SSE)
+
     install(Authentication) {
         bearer("session") {
             authenticate { credential -> accounts.authenticate(credential.token) }
@@ -106,6 +113,6 @@ fun Application.module(config: ServerConfig = ServerConfig.fromEnvironment()) {
     }
 
     routing {
-        animaRoutes(config, accounts, records, blobs)
+        animaRoutes(config, accounts, records, blobs, notifier)
     }
 }

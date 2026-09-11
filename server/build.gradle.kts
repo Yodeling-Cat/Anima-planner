@@ -29,6 +29,7 @@ dependencies {
     implementation(libs.ktor.serverRateLimit)
     implementation(libs.ktor.serverCallLogging)
     implementation(libs.ktor.serverForwardedHeader)
+    implementation(libs.ktor.serverSse)
     implementation(libs.ktor.serializationJson)
     implementation(libs.sqlite.jdbc)
     implementation(libs.bouncycastle)
