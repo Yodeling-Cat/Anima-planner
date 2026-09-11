@@ -16,5 +16,12 @@ $bash = @(
 if (-not $bash) { $bash = (Get-Command bash -ErrorAction SilentlyContinue).Source }
 if (-not $bash) { throw "Could not find bash. Install Git for Windows, or run bin/deploy from a bash shell." }
 
-& $bash "$PSScriptRoot/deploy" @args
+# stderr is merged into stdout by bash rather than by PowerShell. Docker writes its build
+# progress to stderr, and Windows PowerShell turns each native stderr line it is asked to
+# redirect into a NativeCommandError record — pages of red about a build that is going
+# fine. Merging on the bash side means PowerShell only ever sees one stream, so
+# `.\bin\deploy.ps1 | Tee-Object -FilePath deploy.log` captures everything and reads as
+# the deploy actually went.
+$script = "$PSScriptRoot/deploy" -replace '\\', '/'
+& $bash -c 'exec "$0" "$@" 2>&1' $script @args
 exit $LASTEXITCODE
