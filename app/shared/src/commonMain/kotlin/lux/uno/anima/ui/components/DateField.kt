@@ -1,8 +1,10 @@
 package lux.uno.anima.ui.components
 
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -34,7 +36,14 @@ fun LocalDate.toPickerMillis(): Long = atStartOfDayIn(TimeZone.UTC).toEpochMilli
 fun Long.toPickerDate(): LocalDate =
     Instant.fromEpochMilliseconds(this).toLocalDateTime(TimeZone.UTC).date
 
-/** A row showing the chosen day that opens the calendar when tapped. */
+/**
+ * A row showing the chosen day that opens the calendar when tapped.
+ *
+ * [earliest] greys out everything before it and trims the year list to match, so a day the
+ * field would refuse is never offered in the first place. The caller is responsible for
+ * passing a [date] that is not itself before it — the picker would open on a day it cannot
+ * select, and Choose would have nothing to hand back.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateField(
@@ -42,6 +51,7 @@ fun DateField(
     date: LocalDate,
     onDateChange: (LocalDate) -> Unit,
     modifier: Modifier = Modifier,
+    earliest: LocalDate? = null,
 ) {
     var open by remember { mutableStateOf(false) }
 
@@ -54,11 +64,31 @@ fun DateField(
     )
 
     if (open) {
-        val state = rememberDatePickerState(initialSelectedDateMillis = date.toPickerMillis())
+        val selectable = remember(earliest) {
+            val floor = earliest?.toPickerMillis()
+            object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean =
+                    floor == null || utcTimeMillis >= floor
+
+                override fun isSelectableYear(year: Int): Boolean =
+                    earliest == null || year >= earliest.year
+            }
+        }
+        val state = rememberDatePickerState(
+            initialSelectedDateMillis = date.toPickerMillis(),
+            yearRange = IntRange(
+                earliest?.year ?: DatePickerDefaults.YearRange.first,
+                DatePickerDefaults.YearRange.last,
+            ),
+            selectableDates = selectable,
+        )
         DatePickerDialog(
             onDismissRequest = { open = false },
             confirmButton = {
                 TextButton(
+                    // Null while a refused day is showing — typing one into the text field
+                    // leaves nothing selected, and closing on that would look like it took.
+                    enabled = state.selectedDateMillis != null,
                     onClick = {
                         state.selectedDateMillis?.let { onDateChange(it.toPickerDate()) }
                         open = false

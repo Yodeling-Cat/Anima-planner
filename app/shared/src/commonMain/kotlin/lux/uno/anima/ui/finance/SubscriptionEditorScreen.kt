@@ -247,6 +247,10 @@ fun SubscriptionEditorScreen(
                         label = stringResource(Res.string.editor_next_charge),
                         date = nextCharge,
                         onDateChange = { nextCharge = it },
+                        // A charge that already happened is not the next one. Existing
+                        // subscriptions open on `nextRenewal`, which has already been rolled
+                        // forward past today, so this never refuses the value it starts on.
+                        earliest = today,
                     )
                 }
 
