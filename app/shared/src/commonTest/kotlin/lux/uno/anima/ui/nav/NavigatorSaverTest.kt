@@ -81,7 +81,7 @@ class NavigatorSaverTest {
     }
 
     @Test
-    fun `a screen that no longer decodes is dropped, not fatal`() {
+    fun `a screen that no longer decodes is dropped rather than fatal`() {
         // Saved state outlives the code that wrote it: an update can rename or remove a
         // screen while the system still holds a bundle describing it.
         val restored = NavigatorSaver.restore(
