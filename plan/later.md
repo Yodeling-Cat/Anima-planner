@@ -115,11 +115,18 @@ native dependency, on a project that otherwise ships pure Kotlin everywhere. The
 permission-restricted file matches what `gh`, `aws` and `docker` do, and revocable
 sessions are the control that actually limits the damage.
 
-### `CLAUDE.md` as a real symlink
+### `CLAUDE.md` as a real symlink — DONE
 
-It is a **hardlink** to `AGENTS.md`, because Windows refused a symlink without Developer
-Mode. Same file, two names, but a hardlink breaks silently if git ever rewrites one of
-them — and then the two drift with no warning.
+It is a symlink now, recorded by git as mode `120000` whose whole content is the string
+`AGENTS.md`. It was a hardlink before, which git cannot represent at all: both names were
+committed as separate blobs, so any clone got two independent files free to drift apart
+with no warning.
 
-To fix: enable Developer Mode (`start ms-settings:developers`), then `git config
-core.symlinks true` and recreate it with `New-Item -ItemType SymbolicLink`.
+Two things that cost time, worth not rediscovering:
+
+- **`New-Item -ItemType SymbolicLink` fails even with Developer Mode on.** Windows
+  PowerShell 5.1 does not pass `SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE`, so it asks
+  for elevation regardless. `cmd /c mklink CLAUDE.md AGENTS.md` does pass it and works.
+- `git config core.symlinks true` has to be set on **every** clone — it is local config, not
+  something the repository carries. Without it a checkout writes CLAUDE.md as a plain text
+  file containing the word `AGENTS.md`, which is worse than the hardlink it replaced.
