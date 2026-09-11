@@ -123,11 +123,19 @@ if [ "$set_visibility" = true ]; then
   echo "instance: $([ "$public" = true ] && echo 'PUBLIC — serving strangers' || echo 'private')"
 fi
 
-# The secret travels over stdin, never as an argument.
-printf '%s' "$join_password" | ssh "$SSH_TARGET" bash -s <<REMOTE
+# The secret travels inside the script, which itself travels over stdin — so it never
+# reaches the remote process list or anyone's shell history. Base64 only so that a
+# password containing a quote cannot end the string it is sitting in.
+#
+# It must not arrive on stdin *beside* the script. `bash -s` reads the script from stdin
+# one byte at a time, so a `cat` in the middle of it swallows everything after itself:
+# the compose step, the health wait, the lot — and the block still exits 0, which is how
+# a deploy came to print "Deployed." after restarting nothing at all.
+password_b64=$(printf '%s' "$join_password" | base64 | tr -d '\n')
+ssh "$SSH_TARGET" bash -s <<REMOTE
 set -euo pipefail
 cd '$REMOTE_DIR'
-incoming=\$(cat)
+incoming=\$(printf '%s' '$password_b64' | base64 -d)
 
 touch .env
 chmod 600 .env
@@ -165,6 +173,21 @@ echo "gave up waiting; last 40 lines:"
 docker logs --tail 40 $CONTAINER
 exit 1
 REMOTE
+
+# ---------------------------------------------------------------------------
+step "Checking the container runs the jar we just built"
+# ---------------------------------------------------------------------------
+# Every step above reports its own success, which is not the same as the server having
+# changed: a deploy once copied the jar, skipped the restart, printed "Deployed." and
+# left the old process serving. Nothing noticed until a route that had been deployed
+# twice kept answering 404. This is the one check that cannot be satisfied by a no-op.
+built=$(sha256sum "$JAR" | cut -d' ' -f1)
+running=$(ssh "$SSH_TARGET" "docker exec $CONTAINER sha256sum /app/server.jar" | tail -n 1 | cut -d' ' -f1)
+[ "$built" = "$running" ] || fail "the container is serving a different jar than the one just built.
+  built:   $built
+  running: $running
+The copy reached the host, so the container was not rebuilt. Look at the step above."
+echo "${built:0:12} — matches"
 
 # ---------------------------------------------------------------------------
 step "Pointing $DOMAIN at it"
