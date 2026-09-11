@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -45,10 +46,10 @@ val NavRailWidth = 88.dp
 /**
  * The permanent way between sections, shown wherever the window is wide enough for it.
  *
- * It does not replace the back stack, it drives it: every item here is a `popTo`, so
- * arriving at Finance from the rail and arriving from the dashboard leave the same stack
- * behind them and Escape still unwinds it one screen at a time. Two ways to reach a screen
- * are fine; two stacks describing where you have been are not.
+ * It does not replace the back stack, it drives it: every item here is a [Navigator.switchTo],
+ * which roots the stack at the dashboard and puts one screen above it, so Escape still
+ * unwinds towards home from wherever the rail dropped you. Two ways to reach a screen are
+ * fine; two ideas of where you have been are not.
  *
  * Every area is listed, ready or not. The four that are not built yet lead to the same
  * "not built" screen the dashboard opens — hiding them until they ship would make the rail
@@ -62,7 +63,7 @@ fun AnimaNavRail(
     onOpenArea: (LifeArea) -> Unit,
     onOpenAccount: () -> Unit,
     /** The same dot the dashboard shows, so sync state is visible from every screen. */
-    syncDot: Color?,
+    syncDot: Color,
     modifier: Modifier = Modifier,
 ) {
     val here = current.area
@@ -166,14 +167,20 @@ private fun RailItem(
                 icon != null -> Icon(icon, contentDescription = null, tint = content, modifier = Modifier.size(20.dp))
             }
             if (badge != null) {
+                // Ringed in the rail's own colour. The dot sits over the corner of a glyph
+                // and is on screen at all times now, so it needs an edge of its own rather
+                // than whatever it happens to land on.
                 Box(
                     Modifier
                         .align(Alignment.TopEnd)
-                        .padding(start = 14.dp)
-                        .size(7.dp)
+                        .offset(x = 7.dp, y = (-3).dp)
+                        .size(11.dp)
                         .clip(CircleShape)
-                        .background(badge),
-                )
+                        .background(AnimaTheme.palette.elevated),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Box(Modifier.size(7.dp).clip(CircleShape).background(badge))
+                }
             }
         }
         Text(

@@ -62,8 +62,8 @@ fun DashboardScreen(
      * from everywhere rather than only from here.
      */
     onOpenAccount: (() -> Unit)?,
-    /** Null where the environment never syncs, so no dot is drawn at all. */
-    syncDot: Color?,
+    /** Always drawn — see `syncDotFor`, which decides what colour it is saying. */
+    syncDot: Color,
     modifier: Modifier = Modifier,
 ) {
     ScreenSurface(modifier) { contentModifier ->
@@ -107,19 +107,17 @@ fun DashboardScreen(
  * has to say whether anything wants attention.
  */
 @Composable
-private fun AccountDoor(syncDot: Color?, onClick: () -> Unit) {
+private fun AccountDoor(syncDot: Color, onClick: () -> Unit) {
     Box {
         IconAction(AnimaIcons.Person, stringResource(Res.string.dashboard_account), onClick)
-        if (syncDot != null) {
-            Box(
-                Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(6.dp)
-                    .size(8.dp)
-                    .clip(CircleShape)
-                    .background(syncDot),
-            )
-        }
+        Box(
+            Modifier
+                .align(Alignment.TopEnd)
+                .padding(6.dp)
+                .size(8.dp)
+                .clip(CircleShape)
+                .background(syncDot),
+        )
     }
 }
 

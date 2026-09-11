@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -734,22 +735,35 @@ private fun DetailPlaceholder() {
 }
 
 /**
- * The single dot on the dashboard.
+ * The single dot that reports sync, on the rail or on the dashboard.
  *
- * Null when there is nothing to say — the sandbox, or everything already up to date. Amber
- * means something is waiting rather than wrong; red means an attempt was refused. Being
- * offline with nothing pending earns no mark at all: that is the normal state of a phone,
- * and marking it would teach people to ignore the dot.
+ * Always drawn. A dot that only appears when something is wrong cannot be read as "this
+ * device is up to date" — its absence means that *and* means the indicator was never
+ * looked at, and the two are indistinguishable at a glance.
+ *
+ * Four things it can say, and they are deliberately not four shades of alarm:
+ *
+ * - **Green** — signed in, nothing owed, last attempt succeeded. Everything is here.
+ * - **Amber** — something is waiting rather than wrong: writes not yet sent, a sync in
+ *   flight, or no account to send them to.
+ * - **Red** — an attempt was refused. This is the only one that means act.
+ * - **Grey** — nothing owed, but nothing to confirm it against: offline, or the sandbox,
+ *   which has no server by design. Green here would be a claim this cannot check, and
+ *   amber would cry wolf at what is a phone's normal condition.
  */
+@Composable
+@ReadOnlyComposable
 private fun syncDotFor(
     environment: AppEnvironment,
     signedIn: Boolean,
     status: SyncStatus,
     pendingCount: Int,
-): Color? = when {
-    !environment.syncs -> null
+): Color = when {
+    !environment.syncs -> AnimaTheme.palette.faint
     status == SyncStatus.Failed -> Color(0xFFE0504F)
     !signedIn -> Color(0xFFE0A458)
     pendingCount > 0 -> Color(0xFFE0A458)
-    else -> null
+    status == SyncStatus.Syncing -> Color(0xFFE0A458)
+    status == SyncStatus.Offline -> AnimaTheme.palette.faint
+    else -> AnimaTheme.palette.fall
 }
