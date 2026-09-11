@@ -1,0 +1,11 @@
+# Git normalises line endings on checkout, and on Windows that means CRLF. For anything
+# executed on Linux a carriage return is not the end of the line, it is the last character
+# of the command: `set -euo pipefail\r` fails with "invalid option name", and a Dockerfile's
+# trailing backslash stops continuing the line it is on.
+#
+# These are the files that cross to a Linux host and are run there.
+bin/deploy          text eol=lf
+gradlew             text eol=lf
+*.sh                text eol=lf
+Dockerfile          text eol=lf
+compose.yaml        text eol=lf
