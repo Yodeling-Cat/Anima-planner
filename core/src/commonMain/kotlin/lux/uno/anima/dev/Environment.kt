@@ -19,6 +19,15 @@ data class AppEnvironment(
     /** Null means this environment never syncs; the device is the only copy. */
     val serverUrl: String?,
     /**
+     * The shared secret a private server asks for when creating an account on it.
+     *
+     * Never part of a built-in environment: it belongs to whoever runs that server, so it
+     * is typed on the device beside the address and kept in `EnvironmentStore`. Null means
+     * none has been entered, which is correct for a public instance and for a server that
+     * asks for none.
+     */
+    val joinPassword: String? = null,
+    /**
      * Appended to every file and directory this environment owns.
      *
      * Production's is empty on purpose. The app shipped before environments existed, so the

@@ -18,6 +18,16 @@ private data class StoredChoice(
     val activeId: String = Environments.default.id,
     /** Server addresses edited on the device, by environment id. */
     val serverUrls: Map<String, String> = emptyMap(),
+    /**
+     * Join passwords typed on the device, by environment id.
+     *
+     * Here rather than in `SecretStore`, which `AGENTS.md` reserves for the session token
+     * and the address it belongs to. This is configuration for reaching a server — the
+     * same kind of thing as the address above it — and it grants nothing on its own: it
+     * admits the holder to *create* an account, which they then have to hold credentials
+     * for anyway.
+     */
+    val joinPasswords: Map<String, String> = emptyMap(),
 )
 
 /**
@@ -64,6 +74,17 @@ class EnvironmentStore(
         _active.value = resolve(id)
     }
 
+    /** The secret a private server wants from newcomers. Blank clears it. */
+    suspend fun setJoinPassword(id: String, password: String) {
+        val cleaned = password.trim()
+        choice = choice.copy(
+            joinPasswords = if (cleaned.isEmpty()) choice.joinPasswords - id
+            else choice.joinPasswords + (id to cleaned),
+        )
+        write(choice)
+        if (id == _active.value.id) _active.value = resolve(id)
+    }
+
     /** Points an environment at a different server — typically a laptop on the same network. */
     suspend fun setServerUrl(id: String, url: String) {
         val cleaned = url.trim().trimEnd('/')
@@ -81,11 +102,17 @@ class EnvironmentStore(
 
     private fun resolve(id: String): AppEnvironment {
         val environment = Environments.byId(id)
-        val override = choice.serverUrls[id]
         // An environment with no server is one that must never gain one by configuration —
-        // the sandbox's guarantee is that its data cannot leave the device.
-        return if (override != null && environment.syncs) environment.copy(serverUrl = override)
-        else environment
+        // the sandbox's guarantee is that its data cannot leave the device. A join password
+        // is withheld from it for the same reason: it would be a secret kept for a server
+        // this environment is forbidden to have.
+        if (!environment.syncs) return environment
+
+        val address = choice.serverUrls[id]
+        return environment.copy(
+            serverUrl = address ?: environment.serverUrl,
+            joinPassword = choice.joinPasswords[id],
+        )
     }
 
     private suspend fun read(): StoredChoice? = withContext(Dispatchers.Default) {

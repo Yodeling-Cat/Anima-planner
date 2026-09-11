@@ -6,7 +6,7 @@ Outstanding work on the sync project, split by how soon it has to happen.
 | --- | --- | --- |
 | [now.md](now.md) | ~~Nothing syncs until these land.~~ **All done.** Kept for the reasoning. | 5 |
 | [next.md](next.md) | Sync works, but these are wrong, unverified, or missing before anyone relies on it. Only item 1 is open, and it needs a Mac. | 5 |
-| [later.md](later.md) | Worth doing once it works, plus the things deliberately **not** done and why. | 8 |
+| [later.md](later.md) | Worth doing once it works, plus the things deliberately **not** done and why. | 9 |
 
 ## Where things stand
 

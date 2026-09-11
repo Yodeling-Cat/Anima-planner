@@ -17,6 +17,14 @@ sealed interface AccountResult {
     /** This server is not taking new accounts. A setting, not a fault. */
     data object RegistrationClosed : AccountResult
 
+    /**
+     * The server wants a join password and did not get the right one.
+     *
+     * Separate from [Rejected] because it is recoverable by asking the person who runs the
+     * server, where a wrong account password is recoverable by remembering.
+     */
+    data object WrongJoinPassword : AccountResult
+
     data object Unreachable : AccountResult
 
     /** Something the server explained, such as a password that is too short. */
@@ -55,8 +63,16 @@ class Account(
     suspend fun signIn(email: String, password: String): AccountResult =
         attempt(email) { it.logIn(email.trim(), password) }
 
-    suspend fun register(email: String, password: String): AccountResult =
-        attempt(email) { it.register(email.trim(), password) }
+    /**
+     * [joinPassword] is the secret a private server asks newcomers for, set beside its
+     * address in the developer screen. Never this account's own password.
+     */
+    suspend fun register(
+        email: String,
+        password: String,
+        joinPassword: String? = null,
+    ): AccountResult =
+        attempt(email) { it.register(email.trim(), password, joinPassword) }
 
     /**
      * Ends the session.
@@ -100,8 +116,11 @@ class Account(
 
             ApiResult.Unauthorized -> AccountResult.Rejected
             is ApiResult.Unreachable -> AccountResult.Unreachable
-            is ApiResult.Refused -> when (result.status) {
-                403 -> AccountResult.RegistrationClosed
+            is ApiResult.Refused -> when {
+                result.code == "join_password_wrong" -> AccountResult.WrongJoinPassword
+                // A 403 with nothing to go on is an older server, which only ever refused
+                // for one reason.
+                result.status == 403 -> AccountResult.RegistrationClosed
                 else -> AccountResult.Refused(result.detail.ifBlank { "the server refused that" })
             }
         }

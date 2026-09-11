@@ -50,7 +50,12 @@ class SyncRoundTripTest {
         port = 0,
         host = "localhost",
         dataDirectory = directory,
-        registrationOpen = true,
+        // Public, so these tests do not have to carry a join password around.
+        publicInstance = true,
+        joinPassword = null,
+        // The scheduler would otherwise outlive each test with a loop nothing
+        // cancels. Backups have their own test.
+        backupEnabled = false,
     )
     private val json = Json { ignoreUnknownKeys = true }
     private val today = LocalDate(2026, 9, 11)

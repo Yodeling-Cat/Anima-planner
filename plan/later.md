@@ -25,25 +25,150 @@ Do it slowly and conservatively — a blob deleted while a device still holds th
 reference to it is a permanently broken image. Consider a grace period rather than an
 immediate sweep.
 
-### Backups
+### Backups — DONE
 
-One SQLite file plus a blob directory is the entire server state. `VACUUM INTO` gives a
-consistent snapshot without stopping the server. Nothing automates this yet.
+`server/…/backup/Backups.kt`, in process, nightly, on by default. `VACUUM INTO` through a
+connection of its own — not the shared one, because `VACUUM` cannot run inside a
+transaction and borrowing it would hold the write mutex for the length of the copy — then
+`PRAGMA integrity_check` on the result before it is allowed to become the day's backup.
+Blobs are captured as hard links, which their content addressing makes safe and nearly
+free. Retention defaults to 14 days.
+
+In process rather than a sidecar because of the self-hosting half of "Hosting other
+people" below: a precaution that has to be set up separately is one a self-hoster will not
+have. A failure is logged and swallowed — a server that refuses to serve because it could
+not copy itself has turned the precaution into the outage.
+
+Deliberately **not** disaster recovery, and not a second copy of what the host's volume
+snapshots already do. Those cover losing the disk. These cover restoring one app to one
+moment, which a volume rollback cannot do without taking everything else on the box with
+it. Same volume is therefore the right place for them.
+
+Still open:
+
+- **Off-box copies.** Everything above shares a failure domain with the thing it protects.
+  The host's snapshots are the second domain today, which is adequate but is somebody
+  else's promise rather than ours.
+- **A restore that has been rehearsed.** The procedure is written down in
+  `server/deploy/README.md` and has never been run against a real incident. The WAL
+  footgun in it — a stale `-wal` replaying over a restored database — is exactly the kind
+  of thing a rehearsal finds and a document does not.
 
 ---
 
 ## Deployment
 
-The server currently binds `0.0.0.0:8080` with no TLS. Before it faces the internet:
+`bin/deploy` is the whole procedure — build, copy, rebuild, wait for healthy, register
+the route, verify over TLS — and is safe to re-run. `server/deploy/` holds the Dockerfile,
+the compose file and the runbook behind it. The server runs as a container with no
+published host port, joined to the `kamal` network the host's other apps already use,
+with kamal-proxy terminating TLS for `anima.lux.uno`.
 
-- TLS, almost certainly by putting it behind a reverse proxy rather than terminating in
-  Ktor.
-- Keep `ANIMA_REGISTRATION_OPEN` unset once the accounts that should exist do.
-- `ANIMA_DATA_DIR` on a volume that survives a redeploy.
+Settled:
 
-The rate limiter keys on `call.request.local.remoteAddress`. **Behind a proxy that will
-be the proxy**, making one client's failed logins throttle everyone. Switch it to a
-forwarded-header source at the same time as adding the proxy, not after.
+- TLS at the proxy rather than in Ktor, as expected.
+- `ANIMA_DATA_DIR` on a named volume that a redeploy does not touch.
+- The rate limiter keys on `call.request.origin.remoteAddress`, with `XForwardedHeaders`
+  installed only when `ANIMA_TRUST_FORWARDED_HEADERS` says a proxy really is in front.
+  Trusting the header on a directly reachable port would hand every client a way around
+  the limit, so that flag and a published port must never both be on.
+
+Still open:
+
+- Admission is a join password (`ANIMA_JOIN_PASSWORD`), set once with
+  `bin/deploy --password` and kept in a mode-600 `.env` on the host. Absent means nobody
+  new can join. `ANIMA_PUBLIC_INSTANCE` is a separate question — what this deployment *is*,
+  not who may register — and is what the obligations below hang off.
+- Nothing collects tombstones or orphaned blobs. Backups are handled — see above.
+
+---
+
+## Hosting other people
+
+Anima is meant to be deployable two ways, and both have to stay first class:
+
+1. **Self-hosted** — someone runs `server/deploy/` on their own box for themselves or
+   their household. This is what works today.
+2. **Hosted by us** — one deployment serving strangers who sign up, each with their own
+   account.
+
+Neither is the "real" mode. A feature that only makes sense for one of them has to degrade
+cleanly in the other rather than being assumed away, and anything below that needs
+configuration gets a sensible default for a self-hoster who will never read the docs.
+
+The data boundary already carries this: the server stores opaque payloads it cannot read,
+so the difference between hosting yourself and being hosted is who runs the process, not
+how much they can see. Keep it that way — a feature that needs the server to understand a
+payload would break self-hosting's main promise and our hosted offer's at the same time.
+
+What isolation already does hold: every server query is scoped `WHERE user_id = ?`, blobs
+live under `<dataDir>/blobs/<userId>/`, and identical bytes are deliberately **not**
+deduplicated across accounts, because sharing storage would tell the server which users
+hold the same file. Multi-tenancy is not the gap. The gaps are below.
+
+These are what `--public` promises and cannot yet keep. Until they land, setting
+`ANIMA_PUBLIC_INSTANCE` on a deployment that actually serves strangers is writing a cheque
+the code does not cover.
+
+### Account deletion and data export
+
+Neither exists. Deleting a user today means editing SQLite by hand and removing a blob
+directory, and there is no way at all to hand someone their data back.
+
+Both are required to serve users in the EU — erasure and portability — and both are worth
+having regardless, because "I want my data out" is a reasonable thing to ask of any app
+and answering it badly is how a product earns distrust.
+
+- **Deletion** must take the user row, their sessions, every record, and every blob
+  directory under their id. It must be the user's own action from the app, not a support
+  request. Because records are tombstoned rather than dropped everywhere else, this is the
+  one place a hard delete is correct — a tombstone that outlives the account it belonged to
+  is the opposite of erasure.
+- **Export** should hand back the payloads as they are stored, plus the blobs. The server
+  cannot render them into anything friendlier without learning to read them, so the
+  readable export belongs in `core` on the client, where the data is already plaintext.
+
+### Per-user limits
+
+There are none. `MAX_BLOB_BYTES` caps a single blob at 5 MB and `MAX_CHANGES_PER_REQUEST`
+caps one request, but nothing caps what an account accumulates over time. One user can
+upload blobs until the disk is full, and the disk filling takes down everyone else's sync
+along with their own.
+
+Needed before opening registration to strangers:
+
+- a **total storage quota per user**, counting blob bytes and payload bytes together,
+- a **record count ceiling** per user,
+- a clear over-quota response the client can explain, rather than a failed sync that looks
+  like a bug.
+
+Self-hosters should get a generous default and a way to raise it; the limit exists to stop
+one account harming others, which is a problem a household deployment does not have.
+
+### Password reset by email
+
+Wanted, and it is the thing that will hurt first once strangers sign up: there is no reset
+flow, no email verification, and no mail sending anywhere in the server. A user who forgets
+their password is locked out of sync permanently, with nothing support can do.
+
+This needs a deliberate decision recorded here, because it cuts against the privacy rules
+in [../AGENTS.md](../AGENTS.md):
+
+- The address is already stored — it is half the login — so reset does not collect
+  anything new. What is new is **sending** to it, which means an outbound mail path and a
+  third party that learns who has an account here.
+- Reset tokens must be single-use, short-lived, and stored hashed, the way session tokens
+  already are.
+- A reset must **revoke existing sessions**, or a leaked mailbox silently keeps the old
+  attacker signed in.
+- The response to "reset my password" must not reveal whether the address has an account,
+  matching what `signIn` already does.
+- Self-hosted deployments will have no SMTP credentials and must stay fully usable without
+  them. With mail unconfigured the endpoint should refuse cleanly and the app should say so,
+  rather than the feature appearing to work.
+
+A reset mail is the first thing this server would ever send. That is a boundary worth
+crossing on purpose.
 
 ---
 

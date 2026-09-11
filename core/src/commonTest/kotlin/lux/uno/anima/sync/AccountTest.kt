@@ -32,11 +32,13 @@ class AccountTest {
         val logOutResult: ApiResult<Unit> = ApiResult.Ok(Unit),
     ) : SyncApi {
         var loggedOutWith: String? = null
+        var offeredJoinPassword: String? = null
 
         override suspend fun sync(token: String, request: SyncRequest) =
             ApiResult.Ok(SyncResponse(cursor = 0))
 
-        override suspend fun register(email: String, password: String) = answer
+        override suspend fun register(email: String, password: String, joinPassword: String?) =
+            answer.also { offeredJoinPassword = joinPassword }
         override suspend fun logIn(email: String, password: String) = answer
         override suspend fun logOut(token: String): ApiResult<Unit> {
             loggedOutWith = token
@@ -78,9 +80,22 @@ class AccountTest {
     }
 
     @Test
+    fun `a wrong join password is told apart from a closed server`() = runTest {
+        val stub = StubApi(
+            ApiResult.Refused(403, "that join password is wrong", "join_password_wrong"),
+        )
+        val (account, _) = account(stub)
+
+        assertEquals(
+            AccountResult.WrongJoinPassword,
+            account.register("someone@example.com", "correct horse battery", "wrong"),
+        )
+        assertEquals("wrong", stub.offeredJoinPassword)
+    }
+
+    @Test
     fun `a closed server is its own answer rather than a generic failure`() = runTest {
-        // The server returns 403 when ANIMA_REGISTRATION_OPEN is unset, which is the normal
-        // state of a running server rather than something going wrong.
+        // A 403 carrying no code is an older server, which refused for only one reason.
         val (account, _) = account(StubApi(ApiResult.Refused(403, "registration is closed")))
 
         assertEquals(

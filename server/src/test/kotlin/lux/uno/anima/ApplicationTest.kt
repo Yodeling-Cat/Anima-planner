@@ -36,7 +36,12 @@ class ApplicationTest {
         port = 0,
         host = "localhost",
         dataDirectory = directory,
-        registrationOpen = true,
+        // Public, so these tests do not have to carry a join password around.
+        publicInstance = true,
+        joinPassword = null,
+        // The scheduler would otherwise outlive each test with a loop nothing
+        // cancels. Backups have their own test.
+        backupEnabled = false,
     )
     private val json = Json { ignoreUnknownKeys = true }
 
@@ -229,13 +234,45 @@ class ApplicationTest {
     }
 
     @Test
-    fun `registration is refused when it is closed`() = testApplication {
-        application { module(config.copy(registrationOpen = false)) }
+    fun `a private server with no join password refuses everyone`() = testApplication {
+        application { module(config.copy(publicInstance = false, joinPassword = null)) }
         val response = client.post("/auth/register") {
             contentType(ContentType.Application.Json)
             setBody("""{"email":"nope@example.com","password":"correct horse battery"}""")
         }
         assertEquals(HttpStatusCode.Forbidden, response.status)
+        assertTrue(response.bodyAsText().contains("registration_closed"))
+    }
+
+    @Test
+    fun `a join password lets the right newcomer in and keeps the rest out`() = testApplication {
+        application { module(config.copy(publicInstance = false, joinPassword = "open-sesame")) }
+
+        val wrong = client.post("/auth/register") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"email":"guess@example.com","password":"correct horse battery","joinPassword":"sesame"}""")
+        }
+        assertEquals(HttpStatusCode.Forbidden, wrong.status)
+        // The client tells the two apart on this code, never on the sentence beside it.
+        assertTrue(wrong.bodyAsText().contains("join_password_wrong"))
+
+        val right = client.post("/auth/register") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"email":"invited@example.com","password":"correct horse battery","joinPassword":"open-sesame"}""")
+        }
+        assertEquals(HttpStatusCode.Created, right.status)
+    }
+
+    @Test
+    fun `the join password is never echoed back`() = testApplication {
+        application { module(config.copy(publicInstance = false, joinPassword = "open-sesame")) }
+        val response = client.post("/auth/register") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"email":"guess@example.com","password":"correct horse battery","joinPassword":"sesame"}""")
+        }
+        val body = response.bodyAsText()
+        assertFalse(body.contains("open-sesame"), "the expected secret leaked")
+        assertFalse(body.contains("sesame\""), "the offered secret was echoed")
     }
 
     @Test

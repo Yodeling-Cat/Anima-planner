@@ -105,6 +105,7 @@ fun DeveloperScreen(
     onSyncNow: () -> Unit,
     onSelectEnvironment: (String) -> Unit,
     onSetServerUrl: (id: String, url: String) -> Unit,
+    onSetJoinPassword: (id: String, password: String) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -140,7 +141,7 @@ fun DeveloperScreen(
                 }
 
                 if (active.syncs) {
-                    ServerSection(active, onSetServerUrl)
+                    ServerSection(active, onSetServerUrl, onSetJoinPassword)
                 } else {
                     FormSection("Server") {
                         Text(
@@ -210,10 +211,15 @@ private fun SyncStatus.explain(syncs: Boolean): String = when {
 }
 
 @Composable
-private fun ServerSection(active: AppEnvironment, onSetServerUrl: (String, String) -> Unit) {
-    // Seeded per environment so switching while the screen is open reloads the field
-    // rather than leaving the previous environment's address in it.
+private fun ServerSection(
+    active: AppEnvironment,
+    onSetServerUrl: (String, String) -> Unit,
+    onSetJoinPassword: (String, String) -> Unit,
+) {
+    // Seeded per environment so switching while the screen is open reloads the fields
+    // rather than leaving the previous environment's in them.
     var draft by remember(active.id) { mutableStateOf(active.serverUrl.orEmpty()) }
+    var join by remember(active.id) { mutableStateOf(active.joinPassword.orEmpty()) }
 
     FormSection("Server") {
         AnimaTextField(
@@ -231,6 +237,24 @@ private fun ServerSection(active: AppEnvironment, onSetServerUrl: (String, Strin
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             GhostButton("Apply", { onSetServerUrl(active.id, draft) })
             GhostButton("Reset", { draft = ""; onSetServerUrl(active.id, "") })
+        }
+
+        AnimaTextField(
+            value = join,
+            onValueChange = { join = it },
+            label = "Join password",
+            placeholder = "Only needed to create an account",
+        )
+        Text(
+            "A private server asks newcomers for this. Whoever runs it can tell you what " +
+                "it is. It is not your account password and is only used when creating an " +
+                "account — signing in afterwards never needs it.",
+            style = MaterialTheme.typography.bodySmall,
+            color = AnimaTheme.palette.muted,
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            GhostButton("Apply", { onSetJoinPassword(active.id, join) })
+            GhostButton("Clear", { join = ""; onSetJoinPassword(active.id, "") })
         }
     }
 }

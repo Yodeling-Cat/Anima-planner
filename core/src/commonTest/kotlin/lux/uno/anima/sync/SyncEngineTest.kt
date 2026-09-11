@@ -68,7 +68,8 @@ class SyncEngineTest {
             )
         }
 
-        override suspend fun register(email: String, password: String) = ApiResult.Ok(Session("t", 0))
+        override suspend fun register(email: String, password: String, joinPassword: String?) =
+            ApiResult.Ok(Session("t", 0))
         override suspend fun logIn(email: String, password: String) = ApiResult.Ok(Session("t", 0))
         override suspend fun logOut(token: String) = ApiResult.Ok(Unit)
 

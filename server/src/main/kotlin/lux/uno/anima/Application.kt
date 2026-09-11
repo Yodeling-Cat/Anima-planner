@@ -11,6 +11,8 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.plugins.forwardedheaders.XForwardedHeaders
+import io.ktor.server.plugins.origin
 import io.ktor.server.plugins.ratelimit.RateLimit
 import io.ktor.server.plugins.ratelimit.RateLimitName
 import io.ktor.server.plugins.statuspages.StatusPages
@@ -22,10 +24,12 @@ import kotlinx.serialization.json.Json
 import lux.uno.anima.server.ErrorBody
 import lux.uno.anima.server.animaRoutes
 import lux.uno.anima.server.auth.Accounts
+import lux.uno.anima.server.backup.Backups
 import lux.uno.anima.server.blobs.BlobStore
 import lux.uno.anima.server.db.Database
 import lux.uno.anima.server.sync.SyncStore
 import org.slf4j.event.Level
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 
 fun main() {
@@ -43,6 +47,17 @@ fun Application.module(config: ServerConfig = ServerConfig.fromEnvironment()) {
 
     monitor.subscribe(io.ktor.server.application.ApplicationStopped) { database.close() }
 
+    if (config.backupEnabled) {
+        // Tied to the application's own scope, so it stops when the server does rather than
+        // outliving it and copying a database nothing owns any more.
+        Backups(
+            databaseFile = config.databaseFile,
+            blobDirectory = config.blobDirectory,
+            directory = config.backupDirectory,
+            retentionDays = config.backupRetentionDays,
+        ).schedule(this, every = config.backupIntervalHours.hours)
+    }
+
     install(ContentNegotiation) {
         json(Json { ignoreUnknownKeys = true; encodeDefaults = true })
     }
@@ -57,12 +72,21 @@ fun Application.module(config: ServerConfig = ServerConfig.fromEnvironment()) {
         }
     }
 
+    if (config.trustForwardedHeaders) {
+        // Behind a proxy the socket address is the proxy's for every request, so without
+        // this one client's failed logins would throttle everybody. Installed only when the
+        // deployment says a proxy is really there — see ServerConfig.trustForwardedHeaders.
+        install(XForwardedHeaders)
+    }
+
     install(RateLimit) {
         register(RateLimitName("auth")) {
             // Slow enough that guessing a password over the network is hopeless, generous
             // enough that a person mistyping theirs three times never notices.
             rateLimiter(limit = 10, refillPeriod = 1.minutes)
-            requestKey { call -> call.request.local.remoteAddress }
+            // origin, not local: this is the caller's address when a trusted proxy has
+            // rewritten it, and the socket address otherwise.
+            requestKey { call -> call.request.origin.remoteAddress }
         }
     }
 

@@ -4,6 +4,36 @@ Kotlin Multiplatform. `core` holds domain logic shared by every target, `app/sha
 holds Compose UI, `server` is a Ktor service. Android, iOS and Desktop all run the
 same `core`.
 
+## Two ways to be hosted
+
+Anima must stay deployable both ways, and neither is the real one:
+
+1. **Self-hosted** — someone runs `server/deploy/` for themselves or their household.
+2. **Hosted by us** — one deployment serving strangers, each with their own account.
+
+A feature that only makes sense for one has to degrade cleanly in the other rather than
+being assumed away, and anything needing configuration gets a default that works for a
+self-hoster who will never read the docs. Nothing may require an account with us.
+
+This is what the data boundary below is protecting. Because the server holds opaque
+payloads it cannot read, the difference between the two is who runs the process — not how
+much that process can see. A feature that needs the server to understand a payload breaks
+self-hosting's promise and our hosted offer's at the same time.
+
+Two settings, and they answer different questions. **`ANIMA_JOIN_PASSWORD`** decides *who
+may create an account*: whoever can type it. Absent, nobody new can join. **`ANIMA_PUBLIC_INSTANCE`**
+decides *what this deployment is* — a service strangers subscribe to, which is what brings
+erasure, export, per-user limits and a named controller with it. Neither implies the other:
+a public instance may keep a join password through a soft launch, and a private one with a
+password is still just a household.
+
+Both are set once with `bin/deploy --password` / `--public` and persist on the host. They
+are deliberately not per-deploy: a setting that has to be turned off again by a second
+deploy stays on for exactly as long as somebody forgets.
+
+See `plan/later.md` for what is still missing before serving strangers is responsible —
+deletion, export, per-user quotas, password reset.
+
 ## The data boundary
 
 Anima is **offline-first**. The local dataset is the source of truth the UI reads
@@ -173,6 +203,7 @@ moment the record changes underneath, and an id is something saved state can kee
 - Android: `./gradlew :app:androidApp:assembleDebug`
 - Server: `./gradlew :server:run`
 - Tests: `./gradlew :core:allTests :app:shared:jvmTest :server:test`
+- Deploy the server: `bin/deploy` — see `server/deploy/README.md`
 
 `allTests` compiles the iOS targets on Windows but cannot run them — Gradle disables
 `iosSimulatorArm64Test` on a non-Mac host. Compiling them still catches real errors, so do

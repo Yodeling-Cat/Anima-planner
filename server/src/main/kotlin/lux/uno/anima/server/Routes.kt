@@ -19,6 +19,7 @@ import io.ktor.server.routing.put
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
+import lux.uno.anima.Admission
 import lux.uno.anima.Limits
 import lux.uno.anima.ServerConfig
 import lux.uno.anima.server.auth.Accounts
@@ -30,13 +31,25 @@ import lux.uno.anima.server.sync.SyncStore
 import lux.uno.anima.sync.SyncRequest
 
 @Serializable
-data class CredentialsBody(val email: String, val password: String)
+data class CredentialsBody(
+    val email: String,
+    val password: String,
+    /** The server's shared join secret, not this account's password. Absent where none is set. */
+    val joinPassword: String? = null,
+)
 
 @Serializable
 data class SessionBody(val token: String, val expiresAtMillis: Long)
 
+/**
+ * [error] is for a person to read; [code] is for the client to branch on.
+ *
+ * The two are separate because "registration is closed" and "that join password is wrong"
+ * need different things said in the app, and matching on prose would break the moment the
+ * prose improved.
+ */
 @Serializable
-data class ErrorBody(val error: String)
+data class ErrorBody(val error: String, val code: String? = null)
 
 @Serializable
 data class HashesBody(val hashes: List<String> = emptyList())
@@ -61,11 +74,29 @@ fun Route.animaRoutes(
 
     rateLimit(RateLimitName("auth")) {
         post("/auth/register") {
-            if (!config.registrationOpen) {
-                call.respond(HttpStatusCode.Forbidden, ErrorBody("registration is closed"))
-                return@post
-            }
             val body = call.receive<CredentialsBody>()
+            // Inside the auth rate limiter on purpose: a join password is typed by a person
+            // and so is short enough to guess, which makes the ten-a-minute ceiling part of
+            // what protects it rather than an incidental neighbour.
+            when (config.admits(body.joinPassword)) {
+                Admission.ALLOWED -> Unit
+
+                Admission.WRONG_JOIN_PASSWORD -> {
+                    call.respond(
+                        HttpStatusCode.Forbidden,
+                        ErrorBody("that join password is wrong", "join_password_wrong"),
+                    )
+                    return@post
+                }
+
+                Admission.CLOSED -> {
+                    call.respond(
+                        HttpStatusCode.Forbidden,
+                        ErrorBody("this server is not taking new accounts", "registration_closed"),
+                    )
+                    return@post
+                }
+            }
             when (val result = accounts.register(body.email, body.password)) {
                 is RegisterResult.Success ->
                     call.respond(HttpStatusCode.Created, result.session.toBody())

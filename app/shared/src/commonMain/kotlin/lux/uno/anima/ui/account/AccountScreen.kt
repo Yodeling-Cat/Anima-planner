@@ -273,8 +273,11 @@ fun AccountResult.message(): String? = when (this) {
     AccountResult.Success -> null
     AccountResult.Rejected -> "That email and password do not match an account."
     AccountResult.RegistrationClosed ->
-        "This server is not accepting new accounts. Ask whoever runs it to open " +
-            "registration, or sign in with an account that already exists."
+        "This server is not accepting new accounts. Ask whoever runs it for a join " +
+            "password, or sign in with an account that already exists."
+    AccountResult.WrongJoinPassword ->
+        "That join password is wrong. It is set in the developer screen under the server " +
+            "address, and whoever runs the server can tell you what it should be."
     AccountResult.Unreachable ->
         "Could not reach the server. Check the address in the developer screen, or try again " +
             "when you are back online."

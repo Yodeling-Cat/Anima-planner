@@ -112,6 +112,9 @@ fun App() {
             environment = environment,
             onSelectEnvironment = { scope.launch { environments.select(it) } },
             onSetServerUrl = { id, url -> scope.launch { environments.setServerUrl(id, url) } },
+            onSetJoinPassword = { id, password ->
+                scope.launch { environments.setJoinPassword(id, password) }
+            },
         )
     }
 }
@@ -121,6 +124,7 @@ private fun Anima(
     environment: AppEnvironment,
     onSelectEnvironment: (String) -> Unit,
     onSetServerUrl: (id: String, url: String) -> Unit,
+    onSetJoinPassword: (id: String, password: String) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
 
@@ -448,7 +452,12 @@ private fun Anima(
                             onRegister = { email, password ->
                                 scope.launch {
                                     accountBusy = true
-                                    accountMessage = account.register(email, password).message()
+                                    // The join password belongs to the server, not the
+                                    // person, so it comes from the environment rather than
+                                    // from anything typed on this screen.
+                                    accountMessage = account
+                                        .register(email, password, environment.joinPassword)
+                                        .message()
                                     accountBusy = false
                                     if (accountMessage == null) engine.syncNow()
                                 }
@@ -490,6 +499,7 @@ private fun Anima(
                     onSyncNow = { scope.launch { engine.syncNow() } },
                     onSelectEnvironment = onSelectEnvironment,
                     onSetServerUrl = onSetServerUrl,
+                    onSetJoinPassword = onSetJoinPassword,
                     onClose = { showDeveloper = false },
                 )
             }

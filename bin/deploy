@@ -1,0 +1,197 @@
+#!/usr/bin/env bash
+#
+# Deploys the Anima server. One command, and safe to run again at any time.
+#
+#   bin/deploy                    build, ship, restart, route, verify
+#   bin/deploy --password SECRET  set the join password newcomers must type
+#   bin/deploy --password ''      remove it; nobody new can join
+#   bin/deploy --public           declare a service strangers subscribe to
+#   bin/deploy --private          undo that (the default)
+#   bin/deploy --skip-build       ship the jar already in build/libs
+#
+# Settings persist on the host in .env and are left alone when not named, so letting one
+# more person in is one deploy with --password and nothing afterwards. This replaced an
+# earlier pair of flags that opened registration for a single boot: needing a second
+# deploy to close the door again meant the door was open for as long as you forgot.
+#
+# --public does NOT open registration. The join password decides who may create an
+# account; --public declares that this deployment serves strangers, which is what brings
+# erasure, export and per-user limits with it. See plan/later.md.
+set -euo pipefail
+
+SSH_TARGET="${ANIMA_SSH:-user@65.108.255.16}"
+# Under the login user's home on purpose: only the jar and two config files live here,
+# the database and blobs are in a Docker volume, and this way nothing needs sudo.
+REMOTE_DIR="${ANIMA_REMOTE_DIR:-anima}"
+DOMAIN="${ANIMA_DOMAIN:-anima.lux.uno}"
+CONTAINER="anima-server"
+JAR="server/build/libs/server-all.jar"
+
+skip_build=false
+# Unset means "leave whatever the host already has", which is what makes a plain
+# `bin/deploy` safe to run without reciting the server's whole configuration.
+set_password=false
+join_password=""
+set_visibility=false
+public=false
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --password)
+      [ $# -ge 2 ] || { echo "--password needs a value ('' to remove it)" >&2; exit 2; }
+      set_password=true
+      join_password="$2"
+      shift 2
+      ;;
+    --public) set_visibility=true; public=true; shift ;;
+    --private) set_visibility=true; public=false; shift ;;
+    --skip-build) skip_build=true; shift ;;
+    -h|--help) sed -n '3,9p' "$0" | cut -c3-; exit 0 ;;
+    *) echo "unknown option: $1" >&2; exit 2 ;;
+  esac
+done
+
+cd "$(dirname "$0")/.."
+
+step() { printf '\n\033[1m==> %s\033[0m\n' "$1"; }
+fail() { printf '\n\033[31m%s\033[0m\n' "$1" >&2; exit 1; }
+
+# ---------------------------------------------------------------------------
+step "Building the fat jar"
+# ---------------------------------------------------------------------------
+if [ "$skip_build" = true ]; then
+  echo "skipped; using the existing jar"
+else
+  ./gradlew :server:buildFatJar --console=plain -q
+fi
+[ -f "$JAR" ] || fail "no jar at $JAR — run without --skip-build"
+echo "$JAR ($(du -h "$JAR" | cut -f1))"
+
+# ---------------------------------------------------------------------------
+step "Checking the host"
+# ---------------------------------------------------------------------------
+# Everything the deploy assumes about the host, checked in one round trip so a missing
+# piece is reported before anything has been copied or restarted.
+preflight=$(ssh "$SSH_TARGET" bash -s <<'REMOTE'
+set -euo pipefail
+docker info >/dev/null 2>&1 || { echo "ERR no docker access for $(whoami)"; exit 0; }
+docker network inspect kamal >/dev/null 2>&1 || { echo "ERR the 'kamal' network is missing"; exit 0; }
+proxy=$(docker ps --filter name=kamal-proxy --format '{{.Names}}' | head -1)
+[ -n "$proxy" ] || { echo "ERR no running kamal-proxy container"; exit 0; }
+# Flag names drift between kamal-proxy versions, so ask this one what it takes rather
+# than hardcoding a flag that fails the deploy at the last step.
+if docker exec "$proxy" kamal-proxy deploy --help 2>&1 | grep -q -- '--health-check-path'; then
+  echo "OK $proxy health-check-path"
+else
+  echo "OK $proxy none"
+fi
+REMOTE
+)
+# Last line only: a login shell that greets people would otherwise be read as the answer.
+preflight=$(tail -n 1 <<<"$preflight")
+case "$preflight" in
+  ERR*) fail "${preflight#ERR }" ;;
+  OK*) read -r _ PROXY HEALTH_FLAG <<<"$preflight" ;;
+  *) fail "unexpected reply from the host: $preflight" ;;
+esac
+echo "proxy: $PROXY"
+
+# ---------------------------------------------------------------------------
+step "Copying to $SSH_TARGET:$REMOTE_DIR"
+# ---------------------------------------------------------------------------
+ssh "$SSH_TARGET" "mkdir -p '$REMOTE_DIR'"
+# Copied beside the real name and moved into place, so an interrupted transfer can
+# never be the jar a later build picks up.
+scp -q "$JAR" "$SSH_TARGET:$REMOTE_DIR/server.jar.incoming"
+scp -q server/deploy/Dockerfile server/deploy/compose.yaml "$SSH_TARGET:$REMOTE_DIR/"
+ssh "$SSH_TARGET" "mv '$REMOTE_DIR/server.jar.incoming' '$REMOTE_DIR/server.jar'"
+echo "copied"
+
+# ---------------------------------------------------------------------------
+step "Starting the container"
+# ---------------------------------------------------------------------------
+# Written into .env on the host rather than passed per-deploy, so it survives every later
+# `bin/deploy` without being retyped — and so the secret never reaches the process list or
+# this machine's shell history by way of a compose command line.
+if [ "$set_password" = true ]; then
+  if [ -z "$join_password" ]; then
+    echo "join password: removing — nobody new can join"
+  else
+    echo "join password: setting (${#join_password} characters)"
+  fi
+fi
+if [ "$set_visibility" = true ]; then
+  echo "instance: $([ "$public" = true ] && echo 'PUBLIC — serving strangers' || echo 'private')"
+fi
+
+# The secret travels over stdin, never as an argument.
+printf '%s' "$join_password" | ssh "$SSH_TARGET" bash -s <<REMOTE
+set -euo pipefail
+cd '$REMOTE_DIR'
+incoming=\$(cat)
+
+touch .env
+chmod 600 .env
+
+# Each setting is rewritten only when this deploy named it; the rest of .env is copied
+# through untouched. That is what lets a plain deploy keep the server as it was.
+rewrite() {
+  local key="\$1" value="\$2"
+  grep -v "^\$key=" .env > .env.next || true
+  # An if, not a && chain: under `set -e` the chain's false branch would end the script.
+  if [ -n "\$value" ]; then
+    { printf '%s=%s' "\$key" "\$value"; echo; } >> .env.next
+  fi
+  mv .env.next .env
+  chmod 600 .env
+}
+
+if [ "$set_password" = true ]; then rewrite ANIMA_JOIN_PASSWORD "\$incoming"; fi
+if [ "$set_visibility" = true ]; then rewrite ANIMA_PUBLIC_INSTANCE "$([ "$public" = true ] && echo true || echo '')"; fi
+
+JRE_IMAGE='${JRE_IMAGE:-}' docker compose up -d --build
+
+printf 'waiting for health'
+for _ in \$(seq 1 60); do
+  state=\$(docker inspect -f '{{.State.Health.Status}}' $CONTAINER 2>/dev/null || echo missing)
+  case "\$state" in
+    healthy) echo " — healthy"; exit 0 ;;
+    unhealthy) echo; echo "container is unhealthy:"; docker logs --tail 40 $CONTAINER; exit 1 ;;
+  esac
+  printf '.'
+  sleep 2
+done
+echo
+echo "gave up waiting; last 40 lines:"
+docker logs --tail 40 $CONTAINER
+exit 1
+REMOTE
+
+# ---------------------------------------------------------------------------
+step "Pointing $DOMAIN at it"
+# ---------------------------------------------------------------------------
+# Re-run every deploy rather than only on the first. kamal-proxy treats this as the
+# routing swap it does for its own apps, and it is how a route lost to a proxy reset
+# comes back without anyone having to remember a separate command.
+if [ "$HEALTH_FLAG" = "health-check-path" ]; then
+  health_args="--health-check-path /health"
+else
+  health_args=""
+fi
+ssh "$SSH_TARGET" \
+  "docker exec $PROXY kamal-proxy deploy anima --target $CONTAINER:8080 --host $DOMAIN --tls $health_args"
+
+# ---------------------------------------------------------------------------
+step "Verifying from outside"
+# ---------------------------------------------------------------------------
+# First deploy only: the certificate is fetched on the first request to reach the
+# proxy, so the earliest attempts can legitimately fail while that happens.
+for attempt in $(seq 1 10); do
+  if body=$(curl -fsS --max-time 10 "https://$DOMAIN/health" 2>/dev/null); then
+    echo "https://$DOMAIN/health -> $body"
+    printf '\n\033[32mDeployed.\033[0m %s\n' "$DOMAIN"
+    exit 0
+  fi
+  [ "$attempt" = 10 ] || { printf 'waiting for the certificate.'; sleep 6; }
+done
+fail "the container is healthy but https://$DOMAIN/health did not answer.
+Check the proxy:  ssh $SSH_TARGET 'docker logs --tail 40 $PROXY'"

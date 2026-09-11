@@ -1,0 +1,53 @@
+# Anima's server, deployed next to Kamal-managed apps.
+#
+# It publishes no host port on purpose. Ports 80 and 443 belong to kamal-proxy, and
+# taking one here would collide with it; instead the container joins the network the
+# proxy is already on and is reached by name. TLS is the proxy's job — see README.md.
+name: anima
+
+services:
+  anima:
+    build:
+      context: .
+      args:
+        # Kept in step with the Dockerfile's own default; set JRE_IMAGE in the
+        # environment to pull the base from somewhere else, Docker Hub included.
+        JRE_IMAGE: "${JRE_IMAGE:-public.ecr.aws/docker/library/eclipse-temurin:21-jre-noble}"
+    image: anima-server:latest
+    container_name: anima-server
+    restart: unless-stopped
+    environment:
+      ANIMA_DATA_DIR: /data
+      ANIMA_PORT: "8080"
+      ANIMA_HOST: 0.0.0.0
+      # kamal-proxy terminates TLS and rewrites X-Forwarded-For, so the login rate
+      # limiter can key on the real caller instead of the proxy. Only ever true while
+      # the container is unreachable except through that proxy.
+      ANIMA_TRUST_FORWARDED_HEADERS: "true"
+      # Both come from .env beside this file, which `bin/deploy` writes and which is the
+      # only place the join password is kept. Absent means absent: no join password means
+      # nobody new can be admitted, and no public flag means a private instance.
+      ANIMA_JOIN_PASSWORD: "${ANIMA_JOIN_PASSWORD:-}"
+      ANIMA_PUBLIC_INSTANCE: "${ANIMA_PUBLIC_INSTANCE:-false}"
+      # How long a nightly copy survives in /data/backups. Stated here rather than left
+      # to the default because it is a policy, not a tuning knob: it is also how long the
+      # data of a deleted account outlives the deletion.
+      ANIMA_BACKUP_RETENTION_DAYS: "14"
+    volumes:
+      # The database and the blobs. Losing this volume is losing the server's whole
+      # state, so it is what the backup job has to copy.
+      - anima-data:/data
+    networks:
+      - kamal
+
+volumes:
+  anima-data:
+    # Named explicitly so it does not inherit the directory name as a prefix, and so the
+    # backup and restore commands keep working wherever this file is checked out.
+    name: anima-data
+
+networks:
+  kamal:
+    # Created by Kamal for the apps already on this host; joining it rather than making
+    # our own is what lets kamal-proxy route to this container.
+    external: true

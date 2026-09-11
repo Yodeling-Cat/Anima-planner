@@ -32,8 +32,13 @@ sealed interface ApiResult<out T> {
     /** Nothing was reached. Offline, asleep, or the server is down — all the same here. */
     data class Unreachable(val cause: Throwable) : ApiResult<Nothing>
 
-    /** Reached, and refused. A bug on one side or the other. */
-    data class Refused(val status: Int, val detail: String) : ApiResult<Nothing>
+    /**
+     * Reached, and refused.
+     *
+     * [detail] is the server's sentence for a person; [code] is what to branch on, and is
+     * null from any older server or any refusal that has nothing to distinguish.
+     */
+    data class Refused(val status: Int, val detail: String, val code: String? = null) : ApiResult<Nothing>
 }
 
 @Serializable
@@ -42,7 +47,15 @@ data class Session(val token: String, val expiresAtMillis: Long)
 /** The calls the app makes. An interface so the engine can be driven without a server. */
 interface SyncApi {
     suspend fun sync(token: String, request: SyncRequest): ApiResult<SyncResponse>
-    suspend fun register(email: String, password: String): ApiResult<Session>
+    /**
+     * [joinPassword] is the server's shared secret for admitting new accounts, not this
+     * account's own password. Null where the server has none or the app was given none.
+     */
+    suspend fun register(
+        email: String,
+        password: String,
+        joinPassword: String? = null,
+    ): ApiResult<Session>
     suspend fun logIn(email: String, password: String): ApiResult<Session>
     suspend fun logOut(token: String): ApiResult<Unit>
 
@@ -60,10 +73,14 @@ private data class Hashes(val hashes: List<String>)
 private data class Missing(val missing: List<String> = emptyList())
 
 @Serializable
-private data class Credentials(val email: String, val password: String)
+private data class Credentials(
+    val email: String,
+    val password: String,
+    val joinPassword: String? = null,
+)
 
 @Serializable
-private data class ServerError(val error: String = "")
+private data class ServerError(val error: String = "", val code: String? = null)
 
 /**
  * Talks to the server over HTTP.
@@ -92,11 +109,22 @@ class KtorSyncApi(private val client: HttpClient, private val baseUrl: String) :
             }
         }
 
-    override suspend fun register(email: String, password: String): ApiResult<Session> =
+    override suspend fun register(
+        email: String,
+        password: String,
+        joinPassword: String?,
+    ): ApiResult<Session> =
         call(Session.serializer()) {
             client.post("$baseUrl/auth/register") {
                 contentType(ContentType.Application.Json)
-                setBody(format.encodeToString(Credentials.serializer(), Credentials(email, password)))
+                setBody(
+                    format.encodeToString(
+                        Credentials.serializer(),
+                        // Blank and absent mean the same thing to the server, and sending
+                        // the empty string would read as an attempt with a wrong secret.
+                        Credentials(email, password, joinPassword?.takeIf { it.isNotBlank() }),
+                    ),
+                )
             }
         }
 
@@ -177,11 +205,16 @@ class KtorSyncApi(private val client: HttpClient, private val baseUrl: String) :
         val body = runCatching { response.bodyAsText() }.getOrDefault("")
         return when {
             response.status.value == 401 -> ApiResult.Unauthorized
-            response.status.value !in 200..299 -> ApiResult.Refused(
-                status = response.status.value,
-                detail = runCatching { format.decodeFromString(ServerError.serializer(), body).error }
-                    .getOrDefault(body),
-            )
+            response.status.value !in 200..299 -> {
+                val failure = runCatching {
+                    format.decodeFromString(ServerError.serializer(), body)
+                }.getOrNull()
+                ApiResult.Refused(
+                    status = response.status.value,
+                    detail = failure?.error ?: body,
+                    code = failure?.code,
+                )
+            }
             serializer == null -> ApiResult.Ok(Unit) as ApiResult<T>
             else -> runCatching { ApiResult.Ok(format.decodeFromString(serializer, body)) }
                 .getOrElse { ApiResult.Refused(response.status.value, "unreadable response") }
