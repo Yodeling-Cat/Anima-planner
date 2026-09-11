@@ -115,18 +115,23 @@ native dependency, on a project that otherwise ships pure Kotlin everywhere. The
 permission-restricted file matches what `gh`, `aws` and `docker` do, and revocable
 sessions are the control that actually limits the damage.
 
-### `CLAUDE.md` as a real symlink — DONE
+### `CLAUDE.md` beside `AGENTS.md` — DONE, and not with a link
 
-It is a symlink now, recorded by git as mode `120000` whose whole content is the string
-`AGENTS.md`. It was a hardlink before, which git cannot represent at all: both names were
-committed as separate blobs, so any clone got two independent files free to drift apart
-with no warning.
+`CLAUDE.md` is a plain one-line file containing `@AGENTS.md`. That is a Claude Code import:
+the rules stay in `AGENTS.md` alone, and there is no second copy to drift. Same shape as
+`lux-uno/conflux`.
 
-Two things that cost time, worth not rediscovering:
+Two link-based approaches were tried first and are worse:
 
-- **`New-Item -ItemType SymbolicLink` fails even with Developer Mode on.** Windows
-  PowerShell 5.1 does not pass `SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE`, so it asks
-  for elevation regardless. `cmd /c mklink CLAUDE.md AGENTS.md` does pass it and works.
-- `git config core.symlinks true` has to be set on **every** clone — it is local config, not
-  something the repository carries. Without it a checkout writes CLAUDE.md as a plain text
-  file containing the word `AGENTS.md`, which is worse than the hardlink it replaced.
+- **A hardlink** — what this was. Git cannot represent one, so both names were committed as
+  separate blobs and every clone got two independent files free to drift with no warning.
+- **A symlink** — git records it properly as mode `120000`, but a checkout only recreates it
+  when `core.symlinks` is true, and that is **local config every clone has to set for
+  itself**. Without it the checkout writes a text file containing the word `AGENTS.md`,
+  which is the hardlink problem again with an extra step. Worth knowing anyway:
+  `New-Item -ItemType SymbolicLink` demands elevation even with Developer Mode on, because
+  Windows PowerShell 5.1 does not pass `SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE`;
+  `cmd /c mklink` does.
+
+The import needs nothing configured, on any platform. Tools that read `AGENTS.md` — the
+cross-editor convention — get the real thing either way.
