@@ -61,3 +61,14 @@ val BillingCycleSaver: Saver<BillingCycle, Any> = listSaver(
         if (period == null || interval == null) null else BillingCycle(period, interval)
     },
 )
+
+/**
+ * A list of ids, kept as it is.
+ *
+ * Saved state cannot hold a null in a list, so an entry that reads back as one is dropped
+ * rather than turning the whole list into a null and losing every id beside it.
+ */
+val StringListSaver: Saver<List<String>, Any> = listSaver(
+    save = { it },
+    restore = { stored -> stored.filterIsInstance<String>() },
+)

@@ -106,6 +106,18 @@ class Navigator(initial: Screen = Screen.Dashboard) {
 private val screenFormat = Json { ignoreUnknownKeys = true }
 
 /**
+ * Identifies one entry of the back stack for [androidx.compose.runtime.saveable.SaveableStateHolder].
+ *
+ * Only one screen is composed at a time, so a screen that is still on the stack but sitting
+ * underneath another has left the composition and would otherwise lose everything typed into
+ * it. Holding its state under this key is what makes a half-filled form survive a trip to
+ * another screen and back. The encoded form is used because the key has to be writable into
+ * the saved instance state, which a sealed class is not.
+ */
+val Screen.stateKey: String
+    get() = runCatching { screenFormat.encodeToString(Screen.serializer(), this) }.getOrElse { toString() }
+
+/**
  * Writes the back stack out as one string per entry.
  *
  * A screen that no longer decodes — renamed, or dropped in an update — is left out rather

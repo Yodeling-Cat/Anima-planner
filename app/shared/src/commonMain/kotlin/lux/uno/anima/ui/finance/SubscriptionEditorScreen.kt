@@ -18,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -67,6 +68,7 @@ import lux.uno.anima.ui.theme.AnimaTheme
 import androidx.compose.runtime.saveable.rememberSaveable
 import lux.uno.anima.ui.components.IconRefSaver
 import lux.uno.anima.ui.components.LocalDateSaver
+import lux.uno.anima.ui.components.StringListSaver
 import lux.uno.anima.ui.components.BillingCycleSaver
 
 private val TrialReminderChoices = listOf(1, 3, 7, 14)
@@ -112,6 +114,19 @@ fun SubscriptionEditorScreen(
     var categoryId by rememberSaveable { mutableStateOf(existing?.categoryId) }
     var notes by rememberSaveable { mutableStateOf(existing?.notes.orEmpty()) }
     var newCategoryOpen by rememberSaveable { mutableStateOf(false) }
+
+    // Adding a payment method from here is adding it for this subscription, so it is chosen
+    // as soon as it exists. Leaving it unselected asks the user to tap the card they just
+    // created, which reads as the form having ignored them.
+    var knownMethodIds by rememberSaveable(stateSaver = StringListSaver) {
+        mutableStateOf(data.paymentMethods.map { it.id })
+    }
+    LaunchedEffect(data.paymentMethods) {
+        val ids = data.paymentMethods.map { it.id }
+        // Renaming one is not creating one, so only an id that was not here before counts.
+        (ids - knownMethodIds.toSet()).lastOrNull()?.let { paymentMethodId = it }
+        knownMethodIds = ids
+    }
 
     val parsedAmount = amount.toAmountMinorOrNull()
     val canSave = name.isNotBlank() && parsedAmount != null

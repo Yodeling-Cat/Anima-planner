@@ -24,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -91,6 +92,7 @@ import lux.uno.anima.ui.nav.Move
 import lux.uno.anima.ui.nav.Screen
 import lux.uno.anima.ui.nav.SystemBackHandler
 import lux.uno.anima.ui.nav.rememberNavigator
+import lux.uno.anima.ui.nav.stateKey
 import lux.uno.anima.ui.theme.AnimaTheme
 
 @Composable
@@ -201,6 +203,16 @@ private fun Anima(
         syncState?.let { data.recordsToPush(it.nodeId, it.lastPushed).size } ?: 0
     }
     val navigator = rememberNavigator()
+    // Keeps what a screen holds — half-typed forms, scroll position — alive while it sits
+    // buried under another one. Leaving a screen for good drops its state below, so opening
+    // the same screen again starts clean.
+    val screenState = rememberSaveableStateHolder()
+    val stackKeys = navigator.entries.map { it.stateKey }
+    var liveKeys by remember { mutableStateOf(stackKeys) }
+    LaunchedEffect(stackKeys) {
+        (liveKeys - stackKeys.toSet()).forEach(screenState::removeState)
+        liveKeys = stackKeys
+    }
     val today = remember { today() }
 
     val notificationsEnabled by reminders.permissionGranted.collectAsStateWithLifecycle()
@@ -346,144 +358,146 @@ private fun Anima(
                     },
                     label = "screen",
                 ) { screen ->
-                    when (screen) {
-                        Screen.Dashboard -> DashboardScreen(
-                            glance = glance,
-                            onOpenAccount = { navigator.go(Screen.Account) },
-                            syncDot = syncDotFor(environment, signedIn, syncStatus, pendingCount),
-                            onOpen = { area ->
-                                navigator.go(
-                                    if (area == LifeArea.FINANCE) Screen.Finance else Screen.ComingSoon(area),
-                                )
-                            },
-                        )
+                    screenState.SaveableStateProvider(screen.stateKey) {
+                        when (screen) {
+                            Screen.Dashboard -> DashboardScreen(
+                                glance = glance,
+                                onOpenAccount = { navigator.go(Screen.Account) },
+                                syncDot = syncDotFor(environment, signedIn, syncStatus, pendingCount),
+                                onOpen = { area ->
+                                    navigator.go(
+                                        if (area == LifeArea.FINANCE) Screen.Finance else Screen.ComingSoon(area),
+                                    )
+                                },
+                            )
 
-                        Screen.Finance -> FinanceHomeScreen(
-                            data = data,
-                            today = today,
-                            onBack = { navigator.back() },
-                            onOpenSubscription = { navigator.go(Screen.SubscriptionDetail(it)) },
-                            onAddSubscription = { navigator.go(Screen.SubscriptionEditor()) },
-                            onOpenPaymentMethods = { navigator.go(Screen.PaymentMethods) },
-                            onOpenCategories = { navigator.go(Screen.Categories) },
-                        )
+                            Screen.Finance -> FinanceHomeScreen(
+                                data = data,
+                                today = today,
+                                onBack = { navigator.back() },
+                                onOpenSubscription = { navigator.go(Screen.SubscriptionDetail(it)) },
+                                onAddSubscription = { navigator.go(Screen.SubscriptionEditor()) },
+                                onOpenPaymentMethods = { navigator.go(Screen.PaymentMethods) },
+                                onOpenCategories = { navigator.go(Screen.Categories) },
+                            )
 
-                        is Screen.SubscriptionDetail -> {
-                            val subscription = data.subscriptions.firstOrNull { it.id == screen.id }
-                            if (subscription == null) {
-                                // The record was deleted from underneath this screen.
-                                LaunchedEffect(screen.id) { navigator.popTo(Screen.Finance) }
-                            } else {
-                                SubscriptionDetailScreen(
-                                    subscription = subscription,
-                                    data = data,
-                                    today = today,
-                                    onBack = { navigator.back() },
-                                    onEdit = { navigator.go(Screen.SubscriptionEditor(subscription.id)) },
-                                    onDelete = {
-                                        repository.deleteSubscription(subscription.id)
-                                        navigator.popTo(Screen.Finance)
-                                    },
-                                    onTogglePaused = {
-                                        repository.setSubscriptionActive(subscription.id, !subscription.isActive)
-                                    },
-                                    onEndTrial = { repository.endTrial(subscription.id) },
-                                    onRecordPrice = { price, date, note ->
-                                        repository.recordPriceChange(subscription.id, price, date, note)
-                                    },
-                                    onDeletePricePoint = { date ->
-                                        repository.deletePricePoint(subscription.id, date)
-                                    },
-                                )
+                            is Screen.SubscriptionDetail -> {
+                                val subscription = data.subscriptions.firstOrNull { it.id == screen.id }
+                                if (subscription == null) {
+                                    // The record was deleted from underneath this screen.
+                                    LaunchedEffect(screen.id) { navigator.popTo(Screen.Finance) }
+                                } else {
+                                    SubscriptionDetailScreen(
+                                        subscription = subscription,
+                                        data = data,
+                                        today = today,
+                                        onBack = { navigator.back() },
+                                        onEdit = { navigator.go(Screen.SubscriptionEditor(subscription.id)) },
+                                        onDelete = {
+                                            repository.deleteSubscription(subscription.id)
+                                            navigator.popTo(Screen.Finance)
+                                        },
+                                        onTogglePaused = {
+                                            repository.setSubscriptionActive(subscription.id, !subscription.isActive)
+                                        },
+                                        onEndTrial = { repository.endTrial(subscription.id) },
+                                        onRecordPrice = { price, date, note ->
+                                            repository.recordPriceChange(subscription.id, price, date, note)
+                                        },
+                                        onDeletePricePoint = { date ->
+                                            repository.deletePricePoint(subscription.id, date)
+                                        },
+                                    )
+                                }
                             }
-                        }
 
-                        is Screen.SubscriptionEditor -> SubscriptionEditorScreen(
-                            existing = screen.id?.let { id -> data.subscriptions.firstOrNull { it.id == id } },
-                            data = data,
-                            today = today,
-                            onBack = { navigator.back() },
-                            onSave = { subscription ->
-                                repository.upsertSubscription(subscription)
-                                // Editing came from the detail screen, so returning to it is enough.
-                                if (screen.id != null) navigator.back()
-                                else navigator.replace(Screen.SubscriptionDetail(subscription.id))
-                            },
-                            onManagePaymentMethods = { navigator.go(Screen.PaymentMethods) },
-                            onManageCategories = { navigator.go(Screen.Categories) },
-                            onCreateCategory = { repository.upsertCategory(it) },
-                        )
+                            is Screen.SubscriptionEditor -> SubscriptionEditorScreen(
+                                existing = screen.id?.let { id -> data.subscriptions.firstOrNull { it.id == id } },
+                                data = data,
+                                today = today,
+                                onBack = { navigator.back() },
+                                onSave = { subscription ->
+                                    repository.upsertSubscription(subscription)
+                                    // Editing came from the detail screen, so returning to it is enough.
+                                    if (screen.id != null) navigator.back()
+                                    else navigator.replace(Screen.SubscriptionDetail(subscription.id))
+                                },
+                                onManagePaymentMethods = { navigator.go(Screen.PaymentMethods) },
+                                onManageCategories = { navigator.go(Screen.Categories) },
+                                onCreateCategory = { repository.upsertCategory(it) },
+                            )
 
-                        Screen.PaymentMethods -> PaymentMethodsScreen(
-                            data = data,
-                            today = today,
-                            notificationsEnabled = notificationsEnabled,
-                            onBack = { navigator.back() },
-                            onSave = { repository.upsertPaymentMethod(it) },
-                            onDelete = { repository.deletePaymentMethod(it) },
-                        )
+                            Screen.PaymentMethods -> PaymentMethodsScreen(
+                                data = data,
+                                today = today,
+                                notificationsEnabled = notificationsEnabled,
+                                onBack = { navigator.back() },
+                                onSave = { repository.upsertPaymentMethod(it) },
+                                onDelete = { repository.deletePaymentMethod(it) },
+                            )
 
-                        Screen.Categories -> CategoriesScreen(
-                            data = data,
-                            onBack = { navigator.back() },
-                            onSave = { repository.upsertCategory(it) },
-                            onDelete = { repository.deleteCategory(it) },
-                        )
+                            Screen.Categories -> CategoriesScreen(
+                                data = data,
+                                onBack = { navigator.back() },
+                                onSave = { repository.upsertCategory(it) },
+                                onDelete = { repository.deleteCategory(it) },
+                            )
 
-                        Screen.Account -> AccountScreen(
-                            state = AccountState(
-                                environment = environment,
-                                signedIn = signedIn,
-                                email = accountEmail,
-                                syncStatus = syncStatus,
-                                pendingCount = pendingCount,
-                                busy = accountBusy,
-                                message = accountMessage,
-                            ),
-                            onSignIn = { email, password ->
-                                scope.launch {
-                                    accountBusy = true
-                                    accountMessage = account.signIn(email, password).message()
-                                    accountBusy = false
-                                    // Signing in is the moment there is finally something to talk to.
-                                    if (accountMessage == null) engine.syncNow()
-                                }
-                            },
-                            onRegister = { email, password ->
-                                scope.launch {
-                                    accountBusy = true
-                                    // The join password belongs to the server, not the
-                                    // person, so it comes from the environment rather than
-                                    // from anything typed on this screen.
-                                    accountMessage = account
-                                        .register(email, password, environment.joinPassword)
-                                        .message()
-                                    accountBusy = false
-                                    if (accountMessage == null) engine.syncNow()
-                                }
-                            },
-                            onSignOut = { alsoDeleteLocalData ->
-                                scope.launch {
-                                    account.signOut()
-                                    accountMessage = null
-                                    if (alsoDeleteLocalData) {
-                                        repository.resetLocalData()
-                                        // A new node id too: after a wipe this is a new device as far as
-                                        // the server is concerned, and the old push mark would describe
-                                        // records that are no longer here.
-                                        syncStateStore.save(SyncState(nodeId = newId("node")))
+                            Screen.Account -> AccountScreen(
+                                state = AccountState(
+                                    environment = environment,
+                                    signedIn = signedIn,
+                                    email = accountEmail,
+                                    syncStatus = syncStatus,
+                                    pendingCount = pendingCount,
+                                    busy = accountBusy,
+                                    message = accountMessage,
+                                ),
+                                onSignIn = { email, password ->
+                                    scope.launch {
+                                        accountBusy = true
+                                        accountMessage = account.signIn(email, password).message()
+                                        accountBusy = false
+                                        // Signing in is the moment there is finally something to talk to.
+                                        if (accountMessage == null) engine.syncNow()
                                     }
-                                    navigator.back()
-                                }
-                            },
-                            onSyncNow = { scope.launch { engine.syncNow() } },
-                            onBack = { navigator.back() },
-                        )
+                                },
+                                onRegister = { email, password ->
+                                    scope.launch {
+                                        accountBusy = true
+                                        // The join password belongs to the server, not the
+                                        // person, so it comes from the environment rather than
+                                        // from anything typed on this screen.
+                                        accountMessage = account
+                                            .register(email, password, environment.joinPassword)
+                                            .message()
+                                        accountBusy = false
+                                        if (accountMessage == null) engine.syncNow()
+                                    }
+                                },
+                                onSignOut = { alsoDeleteLocalData ->
+                                    scope.launch {
+                                        account.signOut()
+                                        accountMessage = null
+                                        if (alsoDeleteLocalData) {
+                                            repository.resetLocalData()
+                                            // A new node id too: after a wipe this is a new device as far as
+                                            // the server is concerned, and the old push mark would describe
+                                            // records that are no longer here.
+                                            syncStateStore.save(SyncState(nodeId = newId("node")))
+                                        }
+                                        navigator.back()
+                                    }
+                                },
+                                onSyncNow = { scope.launch { engine.syncNow() } },
+                                onBack = { navigator.back() },
+                            )
 
-                        is Screen.ComingSoon -> ComingSoonScreen(
-                            area = screen.area,
-                            onBack = { navigator.back() },
-                        )
+                            is Screen.ComingSoon -> ComingSoonScreen(
+                                area = screen.area,
+                                onBack = { navigator.back() },
+                            )
+                        }
                     }
                 }
             }
