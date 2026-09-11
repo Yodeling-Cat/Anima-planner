@@ -223,6 +223,29 @@ all call it. Do not add a second path: two implementations are what let them dri
 in the first place. `SystemBackHandler` is disabled at the root of the stack on purpose —
 the last back press belongs to Android, and swallowing it traps the user in the app.
 
+### How much room there is
+
+`WindowClass` in `ui/nav/` is measured from the window, never asked of the platform: a
+desktop window dragged narrow is a phone-shaped space and gets the phone layout, and so
+does a folded tablet. Three sizes, and nothing else may branch on width.
+
+- **Compact** — the back stack alone, which is every phone and a narrow window.
+- **Medium** — `AnimaNavRail` appears down the left edge: home, the five life areas ready
+  or not, and the account at the bottom.
+- **Expanded** — a section's list stays on screen beside whatever it opened.
+
+The rail is a second way in, not a second stack. Every item calls `Navigator.switchTo`,
+which roots the stack at the dashboard and puts one screen above it, so Back and Escape
+still walk home and a section you have left never reappears under Back. Where the rail is
+showing it *is* the way home, so the screens it reaches take a null `onBack` and draw no
+arrow — a back arrow beside a permanent rail is two answers to one question.
+
+Which screens split into two panes is a property of the destination, `Screen.listPane`,
+rather than of how deep the stack is — a depth table is one more thing to remember to
+update, and forgetting shows up as a layout that quietly stops splitting. Only the pane
+that changed animates, and the pair is capped and centred **together**: each pane left to
+centre its own column ends up half a screen from the other.
+
 ## Surviving recreation
 
 Android destroys and rebuilds the activity on every configuration change — rotation, dark
