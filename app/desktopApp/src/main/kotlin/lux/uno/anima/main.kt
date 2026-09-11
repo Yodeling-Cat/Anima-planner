@@ -13,7 +13,6 @@ import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.filterNotNull
 
 fun main() = application {
     val geometryStore = remember { WindowGeometryStore() }
@@ -22,6 +21,7 @@ fun main() = application {
     val state = rememberWindowState(
         size = restored?.size ?: DpSize(460.dp, 900.dp),
         position = restored?.position ?: WindowPosition(Alignment.Center),
+        placement = if (restored?.maximized == true) WindowPlacement.Maximized else WindowPlacement.Floating,
     )
 
     Window(
@@ -43,21 +43,32 @@ fun main() = application {
         // Written as the window moves rather than on close, because a crash or a stopped
         // Gradle run never reaches a close handler. Debounced so a drag is one write.
         LaunchedEffect(state) {
-            snapshotFlow { state.geometryToRemember() }
-                .filterNotNull()
+            var floating = restored
+            snapshotFlow { state.toSnapshot() }
                 .debounce(GEOMETRY_WRITE_DELAY_MILLIS)
-                .collect(geometryStore::write)
+                .collect { snapshot ->
+                    snapshot.floating?.let { floating = it }
+                    val bounds = floating ?: return@collect
+                    geometryStore.write(bounds.copy(maximized = snapshot.maximized))
+                }
         }
 
         App()
     }
 }
 
-/**
- * Null while the window is maximised or minimised: those bounds are the screen's, not a
- * position the user chose, and restoring them as an ordinary window is not what they left.
- */
-private fun WindowState.geometryToRemember(): WindowGeometry? =
-    if (placement == WindowPlacement.Floating && !isMinimized) toGeometry() else null
+private data class WindowSnapshot(
+    /**
+     * Null while the window is maximised or minimised: those bounds are the screen's rather
+     * than a position the user chose, so the last floating ones stay the ones to keep.
+     */
+    val floating: WindowGeometry?,
+    val maximized: Boolean,
+)
+
+private fun WindowState.toSnapshot(): WindowSnapshot = WindowSnapshot(
+    floating = if (placement == WindowPlacement.Floating && !isMinimized) toGeometry() else null,
+    maximized = placement == WindowPlacement.Maximized,
+)
 
 private const val GEOMETRY_WRITE_DELAY_MILLIS = 400L

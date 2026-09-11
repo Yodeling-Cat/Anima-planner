@@ -31,7 +31,13 @@ class WindowGeometryStore(directory: String = appDataDirectory()) {
         val height = properties.float("height") ?: return null
         if (width <= 0f || height <= 0f) return null
 
-        val geometry = WindowGeometry(x, y, width, height)
+        val geometry = WindowGeometry(
+            x = x,
+            y = y,
+            width = width,
+            height = height,
+            maximized = properties.getProperty("maximized").toBoolean(),
+        )
         // A monitor that is no longer attached would put the window somewhere the user
         // cannot reach it, which looks exactly like the app failing to start.
         return geometry.takeIf { it.isOnAScreen() }
@@ -43,6 +49,7 @@ class WindowGeometryStore(directory: String = appDataDirectory()) {
             setProperty("y", geometry.y.toString())
             setProperty("width", geometry.width.toString())
             setProperty("height", geometry.height.toString())
+            setProperty("maximized", geometry.maximized.toString())
         }
         // Losing the last position is not worth a crash on a read-only or full disk.
         runCatching {
@@ -59,6 +66,8 @@ data class WindowGeometry(
     val y: Float,
     val width: Float,
     val height: Float,
+    /** The other four stay the bounds to un-maximise back to, which is what Windows does. */
+    val maximized: Boolean = false,
 ) {
     val position: WindowPosition get() = WindowPosition(x.dp, y.dp)
     val size: DpSize get() = DpSize(width.dp, height.dp)
