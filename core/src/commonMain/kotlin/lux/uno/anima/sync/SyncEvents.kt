@@ -1,7 +1,9 @@
 package lux.uno.anima.sync
 
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpTimeoutConfig
 import io.ktor.client.plugins.sse.sse
+import io.ktor.client.plugins.timeout
 import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
 import kotlinx.coroutines.CancellationException
@@ -56,7 +58,21 @@ class KtorSyncEvents(
         try {
             client.sse(
                 urlString = "$baseUrl/sync/events",
-                request = { header(HttpHeaders.Authorization, "Bearer $token") },
+                request = {
+                    header(HttpHeaders.Authorization, "Bearer $token")
+                    timeout {
+                        // A live channel is a request that is never meant to finish, so the
+                        // whole-call timeout has to be off or it would cut the connection at
+                        // whatever that number was.
+                        requestTimeoutMillis = HttpTimeoutConfig.INFINITE_TIMEOUT_MS
+                        // Quiet is the normal state here. OkHttp gives up on a silent socket
+                        // after ten seconds by default, which is well under the server's
+                        // twenty-five second keep-alive — so without this the connection dies
+                        // and is rebuilt every ten seconds, forever. Two missed keep-alives
+                        // is the signal that it is really gone.
+                        socketTimeoutMillis = SOCKET_TIMEOUT_MILLIS
+                    }
+                },
             ) {
                 incoming.collect { event ->
                     when (event.event) {
@@ -80,6 +96,7 @@ class KtorSyncEvents(
     }
 
     private companion object {
+        const val SOCKET_TIMEOUT_MILLIS = 60_000L
         const val CONNECTED_EVENT = "connected"
         const val CHANGED_EVENT = "changed"
     }

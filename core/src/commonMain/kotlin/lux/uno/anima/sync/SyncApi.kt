@@ -1,6 +1,7 @@
 package lux.uno.anima.sync
 
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.sse.SSE
 import io.ktor.client.request.header
 import io.ktor.client.request.get
@@ -232,4 +233,9 @@ class KtorSyncApi(private val client: HttpClient, private val baseUrl: String) :
  */
 fun animaHttpClient(): HttpClient = HttpClient {
     install(SSE)
+    // Installed with nothing set, so every call keeps the engine's own timeouts. It is here
+    // to make per-request `timeout { }` work at all: without the plugin that block does
+    // nothing, and the live channel has to have it — an engine's idle timeout is measured in
+    // seconds and a connection that is deliberately quiet between heartbeats looks idle.
+    install(HttpTimeout)
 }
