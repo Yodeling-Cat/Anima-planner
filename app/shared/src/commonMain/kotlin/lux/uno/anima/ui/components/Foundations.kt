@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -43,30 +42,30 @@ import lux.uno.anima.ui.theme.EyebrowStyle
 import org.jetbrains.compose.resources.stringResource
 
 /** Widest the content column is allowed to get, so desktop windows stay readable. */
-private val ContentMaxWidth = 620.dp
+val ContentMaxWidth = 620.dp
 
 /**
- * Page frame: paints the background, then centres a column of at most [ContentMaxWidth] so
+ * Page frame: paints the background, then centres a column of at most [maxWidth] so
  * the same screen reads well on a phone and on a maximised desktop window.
+ *
+ * The cap comes before the fill, and that order is the whole thing. `widthIn` keeps the
+ * incoming constraints, so a `fillMaxSize` ahead of it hands it a width that is already
+ * fixed to the window and leaves it nothing to narrow — which is how a maximised desktop
+ * window ended up drawing phone layouts two thousand pixels wide.
  */
 @Composable
 fun ScreenSurface(
     modifier: Modifier = Modifier,
+    maxWidth: Dp = ContentMaxWidth,
     content: @Composable (Modifier) -> Unit,
 ) {
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
+        contentAlignment = Alignment.TopCenter,
     ) {
-        BoxWithConstraints(Modifier.fillMaxSize()) {
-            content(
-                Modifier
-                    .fillMaxSize()
-                    .widthIn(max = ContentMaxWidth)
-                    .align(Alignment.TopCenter),
-            )
-        }
+        content(Modifier.widthIn(max = maxWidth).fillMaxSize())
     }
 }
 
