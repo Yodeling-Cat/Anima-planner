@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import lux.uno.anima.ui.theme.AnimaIcons
 import lux.uno.anima.ui.theme.AnimaTheme
@@ -73,6 +74,11 @@ fun AnimaTextField(
     minLines: Int = 1,
     keyboardType: KeyboardType = KeyboardType.Text,
     prefix: String? = null,
+    /**
+     * Lets a field show something other than it stores — punctuation in a date, say. Doing
+     * it here rather than rewriting the value keeps the caret where the typist left it.
+     */
+    visualTransformation: VisualTransformation = VisualTransformation.None,
     trailing: @Composable (() -> Unit)? = null,
 ) {
     val interaction = remember { MutableInteractionSource() }
@@ -96,6 +102,7 @@ fun AnimaTextField(
             ),
             cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            visualTransformation = visualTransformation,
             interactionSource = interaction,
             modifier = Modifier.fillMaxWidth(),
             decorationBox = { inner ->

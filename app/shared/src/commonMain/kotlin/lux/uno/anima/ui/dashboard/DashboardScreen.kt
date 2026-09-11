@@ -36,6 +36,10 @@ import lux.uno.anima.ui.components.Pill
 import lux.uno.anima.ui.components.ScreenSurface
 import lux.uno.anima.ui.theme.AnimaTheme
 import lux.uno.anima.ui.theme.EyebrowStyle
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import lux.uno.anima.ui.components.IconAction
+import lux.uno.anima.ui.theme.AnimaIcons
 
 /** The handful of finance numbers the dashboard shows without opening the section. */
 data class FinanceGlance(
@@ -49,6 +53,9 @@ data class FinanceGlance(
 fun DashboardScreen(
     glance: FinanceGlance,
     onOpen: (LifeArea) -> Unit,
+    onOpenAccount: () -> Unit,
+    /** Null where the environment never syncs, so no dot is drawn at all. */
+    syncDot: Color?,
     modifier: Modifier = Modifier,
 ) {
     ScreenSurface(modifier) { contentModifier ->
@@ -60,7 +67,10 @@ fun DashboardScreen(
                 .padding(top = 28.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Greeting()
+            Row(verticalAlignment = Alignment.Top) {
+                Greeting(Modifier.weight(1f))
+                AccountDoor(syncDot = syncDot, onClick = onOpenAccount)
+            }
             Spacer(Modifier.height(6.dp))
 
             FinanceDoor(glance = glance, onClick = { onOpen(LifeArea.FINANCE) })
@@ -82,8 +92,31 @@ fun DashboardScreen(
     }
 }
 
+/**
+ * The way into the account screen, and the only sync signal on the dashboard.
+ *
+ * A dot rather than words: the detail belongs on the account screen, and the dashboard only
+ * has to say whether anything wants attention.
+ */
 @Composable
-private fun Greeting() {
+private fun AccountDoor(syncDot: Color?, onClick: () -> Unit) {
+    Box {
+        IconAction(AnimaIcons.Person, "Account", onClick)
+        if (syncDot != null) {
+            Box(
+                Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(6.dp)
+                    .size(8.dp)
+                    .clip(CircleShape)
+                    .background(syncDot),
+            )
+        }
+    }
+}
+
+@Composable
+private fun Greeting(modifier: Modifier = Modifier) {
     val hour = currentHour()
     val salutation = when (hour) {
         in 0..4 -> "Still up"
@@ -91,7 +124,7 @@ private fun Greeting() {
         in 12..17 -> "Good afternoon"
         else -> "Good evening"
     }
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text("ANIMA", style = EyebrowStyle, color = AnimaTheme.palette.faint)
         Text(
             text = salutation,

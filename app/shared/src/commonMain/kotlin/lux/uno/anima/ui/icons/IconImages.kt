@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import lux.uno.anima.finance.model.IconRef
 import lux.uno.anima.finance.store.IconStore
+import lux.uno.anima.sync.BlobStore
 import lux.uno.anima.ui.components.GlyphTile
 
 /**
@@ -63,6 +64,20 @@ class IconImages(private val store: IconStore) {
     }
 
     suspend fun pruneExcept(keep: Set<String>) = store.pruneExcept(keep)
+
+    /** Renames any icon still carrying a random id; see [IconStore.migrateToContentAddressing]. */
+    suspend fun migrateToContentAddressing(): Map<String, String> =
+        store.migrateToContentAddressing().also { moved ->
+            // The cache is keyed by id, and every one of those ids just changed.
+            if (moved.isNotEmpty()) decoded.clear()
+        }
+
+    /** The store itself, for the sync engine to move icons in and out of. */
+    fun asBlobStore(): BlobStore = object : BlobStore {
+        override suspend fun stored(): Set<String> = store.stored()
+        override suspend fun load(hash: String): ByteArray? = store.load(hash)
+        override suspend fun put(hash: String, bytes: ByteArray): Boolean = store.put(hash, bytes)
+    }
 }
 
 val LocalIconImages = staticCompositionLocalOf<IconImages> {

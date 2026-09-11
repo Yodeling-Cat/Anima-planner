@@ -64,6 +64,10 @@ import lux.uno.anima.ui.icons.SubscriptionIcon
 import lux.uno.anima.ui.icons.rememberImagePicker
 import lux.uno.anima.ui.theme.AnimaIcons
 import lux.uno.anima.ui.theme.AnimaTheme
+import androidx.compose.runtime.saveable.rememberSaveable
+import lux.uno.anima.ui.components.IconRefSaver
+import lux.uno.anima.ui.components.LocalDateSaver
+import lux.uno.anima.ui.components.BillingCycleSaver
 
 private val TrialReminderChoices = listOf(1, 3, 7, 14)
 
@@ -84,28 +88,30 @@ fun SubscriptionEditorScreen(
     onCreateCategory: (Category) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var name by remember { mutableStateOf(existing?.name.orEmpty()) }
-    var icon by remember { mutableStateOf(existing?.icon ?: IconRef.Default) }
-    var colorArgb by remember { mutableStateOf(existing?.colorArgb ?: AccentSwatches.first()) }
-    var amount by remember {
+    var name by rememberSaveable { mutableStateOf(existing?.name.orEmpty()) }
+    var icon by rememberSaveable(stateSaver = IconRefSaver) { mutableStateOf(existing?.icon ?: IconRef.Default) }
+    var colorArgb by rememberSaveable { mutableStateOf(existing?.colorArgb ?: AccentSwatches.first()) }
+    var amount by rememberSaveable {
         mutableStateOf(existing?.let { formatAmountForInput(it.currentPrice(today)) } ?: "")
     }
-    var currency by remember {
+    var currency by rememberSaveable {
         mutableStateOf(existing?.currency ?: data.settings.preferredCurrency)
     }
-    var cycle by remember { mutableStateOf(existing?.cycle ?: BillingCycle.Monthly) }
-    var nextCharge by remember {
+    var cycle by rememberSaveable(stateSaver = BillingCycleSaver) {
+        mutableStateOf(existing?.cycle ?: BillingCycle.Monthly)
+    }
+    var nextCharge by rememberSaveable(stateSaver = LocalDateSaver) {
         mutableStateOf(existing?.nextRenewal(today) ?: today.plus(1, DateTimeUnit.MONTH))
     }
-    var hasTrial by remember { mutableStateOf(existing?.trial != null) }
-    var trialEnds by remember {
+    var hasTrial by rememberSaveable { mutableStateOf(existing?.trial != null) }
+    var trialEnds by rememberSaveable(stateSaver = LocalDateSaver) {
         mutableStateOf(existing?.trial?.endsOn ?: today.plus(14, DateTimeUnit.DAY))
     }
-    var remindDaysBefore by remember { mutableStateOf(existing?.trial?.remindDaysBefore ?: 3) }
-    var paymentMethodId by remember { mutableStateOf(existing?.paymentMethodId) }
-    var categoryId by remember { mutableStateOf(existing?.categoryId) }
-    var notes by remember { mutableStateOf(existing?.notes.orEmpty()) }
-    var newCategoryOpen by remember { mutableStateOf(false) }
+    var remindDaysBefore by rememberSaveable { mutableStateOf(existing?.trial?.remindDaysBefore ?: 3) }
+    var paymentMethodId by rememberSaveable { mutableStateOf(existing?.paymentMethodId) }
+    var categoryId by rememberSaveable { mutableStateOf(existing?.categoryId) }
+    var notes by rememberSaveable { mutableStateOf(existing?.notes.orEmpty()) }
+    var newCategoryOpen by rememberSaveable { mutableStateOf(false) }
 
     val parsedAmount = amount.toAmountMinorOrNull()
     val canSave = name.isNotBlank() && parsedAmount != null
@@ -239,7 +245,10 @@ fun SubscriptionEditorScreen(
                                 style = MaterialTheme.typography.labelSmall,
                                 color = AnimaTheme.palette.faint,
                             )
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            FlowRow(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
                                 TrialReminderChoices.forEach { days ->
                                     ChoiceChip(
                                         label = if (days == 1) "1 day before" else "$days days before",

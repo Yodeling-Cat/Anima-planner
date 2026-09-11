@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Needed from API 33 for the card expiry reminders to appear at all. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
     <application
             android:allowBackup="true"
             android:icon="@mipmap/ic_launcher"
@@ -17,6 +20,11 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+        <!-- Woken by AlarmManager when a scheduled reminder comes due. -->
+        <receiver
+                android:name="lux.uno.anima.finance.reminders.ReminderReceiver"
+                android:exported="false"/>
     </application>
 
 </manifest>

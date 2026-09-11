@@ -20,6 +20,11 @@ data class PaymentMethod(
     val last4: String? = null,
     /** ARGB colour used for the chip; picked in the editor. */
     val colorArgb: Long = 0xFF6C7BFFL,
+    /** Only meaningful for cards, and optional even there. Drives the expiry reminders. */
+    val expiry: CardExpiry? = null,
 ) {
     val displayName: String get() = if (last4.isNullOrBlank()) name else "$name ·· $last4"
+
+    /** Expiry is a card concept; a bank account carrying one would be a data-entry slip. */
+    val tracksExpiry: Boolean get() = kind == PaymentMethodKind.CARD
 }

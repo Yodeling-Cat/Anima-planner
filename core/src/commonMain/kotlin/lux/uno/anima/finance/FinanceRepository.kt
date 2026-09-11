@@ -4,7 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -15,6 +15,9 @@ import lux.uno.anima.finance.model.PaymentMethod
 import lux.uno.anima.finance.model.PricePoint
 import lux.uno.anima.finance.model.Subscription
 import lux.uno.anima.finance.store.FinanceStore
+import lux.uno.anima.finance.sync.applying
+import lux.uno.anima.sync.HybridClock
+import lux.uno.anima.sync.SyncRecord
 
 /**
  * The single source of truth for finance data. Everything the UI does goes through here,
@@ -24,6 +27,14 @@ class FinanceRepository(
     private val store: FinanceStore,
     private val scope: CoroutineScope,
     private val seedWhenEmpty: () -> FinanceData? = { null },
+    /**
+     * Stamps every change so another device can tell which version is newer.
+     *
+     * Deliberately has no default. Its node id has to be the one stored in `SyncState`, and
+     * a default would quietly hand out a fresh one per instance — which reads as a brand new
+     * device every launch, owing the server everything it had already sent.
+     */
+    val clock: HybridClock,
 ) {
     private val _data = MutableStateFlow(FinanceData())
     val data: StateFlow<FinanceData> = _data.asStateFlow()
@@ -31,14 +42,38 @@ class FinanceRepository(
     private val _isLoaded = MutableStateFlow(false)
     val isLoaded: StateFlow<Boolean> = _isLoaded.asStateFlow()
 
+    private val _localEdits = MutableStateFlow(0L)
+
+    /**
+     * Counts changes made *here*, so a sync can be triggered by them.
+     *
+     * Watching the data itself would also fire for records just pulled from the server,
+     * and each pull would schedule a sync that had nothing to send.
+     */
+    val localEdits: StateFlow<Long> = _localEdits.asStateFlow()
+
     private val writeLock = Mutex()
 
     suspend fun load() {
-        val loaded = store.load()?.migrated()
-            ?: seedWhenEmpty()?.also { store.save(it) }
-            ?: emptyFinanceData()
-        _data.value = loaded
+        val onDisk = store.load()
+        val stored = onDisk?.migrated()
+        val migrating = (onDisk?.schemaVersion ?: FINANCE_SCHEMA_VERSION) < STABLE_NODE_SCHEMA_VERSION
+        val loaded = stored ?: seedWhenEmpty() ?: emptyFinanceData()
+
+        // Carry the clock past every reading in the file before issuing any of its own. The
+        // highest stamp on disk is in effect the last reading this device gave out, so it
+        // resumes above them even though nothing records it separately — and a wall clock
+        // that jumped backwards while the app was closed cannot reissue one.
+        loaded.meta.values.forEach { clock.observe(it.hlc) }
+
+        // Records stamped before the node id was persisted name a device that no longer
+        // exists, and nothing would ever recognise them as this one's to send.
+        val stamped = (if (migrating) loaded.adoptedBy(clock) else loaded).stamped(clock)
+        _data.value = stamped
         _isLoaded.value = true
+
+        // Seeded, migrated, or newly stamped: whichever it was, the file is now behind.
+        if (stamped != stored) writeLock.withLock { store.save(stamped) }
     }
 
     // region subscriptions
@@ -161,9 +196,61 @@ class FinanceRepository(
         current.copy(settings = current.settings.copy(preferredCurrency = currency))
     }
 
+    /**
+     * Folds records from the server in.
+     *
+     * Deliberately not [mutate]: that stamps whatever changed under this device's clock,
+     * which would rewrite every incoming reading and make each pull look like a fresh local
+     * edit — the two devices would then push newer versions at each other forever. The
+     * readings are set by `applying` instead, from the records themselves.
+     */
+    suspend fun applyRemote(records: List<SyncRecord>): FinanceData {
+        if (records.isEmpty()) return _data.value
+        val snapshot = _data.updateAndGet { it.applying(records, clock) }
+        writeLock.withLock { store.save(snapshot) }
+        return snapshot
+    }
+
+    /**
+     * Points subscriptions at the new ids their icons were renamed to.
+     *
+     * A real edit, stamped like any other: the record genuinely changed, and every device
+     * has to learn the new id. Two devices migrating independently arrive at the same hash,
+     * so whichever stamp wins the content is identical either way.
+     */
+    fun applyIconMigration(moved: Map<String, String>) {
+        if (moved.isEmpty()) return
+        if (_data.value.subscriptions.none { it.icon.imageId in moved }) return
+        mutate { current ->
+            current.copy(
+                subscriptions = current.subscriptions.map { subscription ->
+                    val replacement = moved[subscription.icon.imageId] ?: return@map subscription
+                    subscription.copy(icon = subscription.icon.copy(imageId = replacement))
+                },
+            )
+        }
+    }
+
+    /**
+     * Throws this environment's dataset away and starts over.
+     *
+     * Only ever reached by someone signing out and explicitly asking for it. The reset is
+     * seeded exactly as a brand new install would be — defaults stamped so they lose — so
+     * signing back in pulls the real data down rather than pushing a blank slate over it.
+     */
+    suspend fun resetLocalData() {
+        val fresh = emptyFinanceData()
+        _data.value = fresh
+        writeLock.withLock { store.save(fresh) }
+    }
+
     private fun mutate(transform: (FinanceData) -> FinanceData) {
-        _data.update(transform)
-        val snapshot = _data.value
+        // Every mutator goes through here, so this is the one place stamping has to happen —
+        // and the one place it cannot be forgotten.
+        val snapshot = _data.updateAndGet { previous ->
+            transform(previous).restamped(previous, clock)
+        }
+        _localEdits.value += 1
         scope.launch { writeLock.withLock { store.save(snapshot) } }
     }
 }

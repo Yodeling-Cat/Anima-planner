@@ -40,6 +40,7 @@ import lux.uno.anima.ui.components.PrimaryButton
 import lux.uno.anima.ui.components.ScreenSurface
 import lux.uno.anima.ui.theme.AnimaIcons
 import lux.uno.anima.ui.theme.AnimaTheme
+import androidx.compose.runtime.saveable.rememberSaveable
 
 /** Emoji offered when naming a category. Anything else can be typed into the field. */
 internal val CategoryGlyphChoices = listOf(
@@ -55,9 +56,14 @@ fun CategoriesScreen(
     onDelete: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var editing by remember { mutableStateOf<Category?>(null) }
-    var creating by remember { mutableStateOf(false) }
-    var pendingDelete by remember { mutableStateOf<Category?>(null) }
+    // Ids rather than copies: saved state can hold a string, and a stored copy would go
+    // stale the moment the record it came from changed underneath the dialog.
+    var editingId by rememberSaveable { mutableStateOf<String?>(null) }
+    var creating by rememberSaveable { mutableStateOf(false) }
+    var pendingDeleteId by rememberSaveable { mutableStateOf<String?>(null) }
+
+    val editing = editingId?.let { id -> data.categories.firstOrNull { it.id == id } }
+    val pendingDelete = pendingDeleteId?.let { id -> data.categories.firstOrNull { it.id == id } }
 
     val usageCount = remember(data) {
         data.subscriptions.groupingBy { it.categoryId }.eachCount()
@@ -92,7 +98,7 @@ fun CategoriesScreen(
             ) {
                 data.categories.forEach { category ->
                     val used = usageCount[category.id] ?: 0
-                    AnimaCard(onClick = { editing = category }, contentPadding = PaddingValues(14.dp)) {
+                    AnimaCard(onClick = { editingId = category.id }, contentPadding = PaddingValues(14.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             GlyphTile(category.glyph, Color(category.colorArgb), size = 40.dp)
                             Spacer(Modifier.width(13.dp))
@@ -111,7 +117,7 @@ fun CategoriesScreen(
                             IconAction(
                                 icon = AnimaIcons.Trash,
                                 contentDescription = "Delete ${category.label}",
-                                onClick = { pendingDelete = category },
+                                onClick = { pendingDeleteId = category.id },
                                 tint = AnimaTheme.palette.faint,
                             )
                         }
@@ -124,11 +130,11 @@ fun CategoriesScreen(
     if (creating || editing != null) {
         CategoryDialog(
             existing = editing,
-            onDismiss = { creating = false; editing = null },
+            onDismiss = { creating = false; editingId = null },
             onConfirm = {
                 onSave(it)
                 creating = false
-                editing = null
+                editingId = null
             },
         )
     }
@@ -136,7 +142,7 @@ fun CategoriesScreen(
     pendingDelete?.let { category ->
         val used = usageCount[category.id] ?: 0
         AlertDialog(
-            onDismissRequest = { pendingDelete = null },
+            onDismissRequest = { pendingDeleteId = null },
             title = { Text("Delete ${category.label}?") },
             text = {
                 Text(
@@ -146,11 +152,11 @@ fun CategoriesScreen(
                 )
             },
             confirmButton = {
-                TextButton(onClick = { onDelete(category.id); pendingDelete = null }) {
+                TextButton(onClick = { onDelete(category.id); pendingDeleteId = null }) {
                     Text("Delete", color = MaterialTheme.colorScheme.error)
                 }
             },
-            dismissButton = { TextButton(onClick = { pendingDelete = null }) { Text("Keep") } },
+            dismissButton = { TextButton(onClick = { pendingDeleteId = null }) { Text("Keep") } },
         )
     }
 }
@@ -162,9 +168,9 @@ fun CategoryDialog(
     onDismiss: () -> Unit,
     onConfirm: (Category) -> Unit,
 ) {
-    var label by remember { mutableStateOf(existing?.label.orEmpty()) }
-    var glyph by remember { mutableStateOf(existing?.glyph ?: "✦") }
-    var colorArgb by remember { mutableStateOf(existing?.colorArgb ?: AccentSwatches.first()) }
+    var label by rememberSaveable { mutableStateOf(existing?.label.orEmpty()) }
+    var glyph by rememberSaveable { mutableStateOf(existing?.glyph ?: "✦") }
+    var colorArgb by rememberSaveable { mutableStateOf(existing?.colorArgb ?: AccentSwatches.first()) }
 
     AlertDialog(
         onDismissRequest = onDismiss,

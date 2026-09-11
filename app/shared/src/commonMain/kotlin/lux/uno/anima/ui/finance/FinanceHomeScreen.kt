@@ -39,6 +39,8 @@ import lux.uno.anima.finance.FinanceData
 import lux.uno.anima.finance.formatShort
 import lux.uno.anima.finance.model.BillingPeriod
 import lux.uno.anima.finance.model.CurrencyTotal
+import lux.uno.anima.finance.model.PaymentMethod
+import lux.uno.anima.finance.model.cardsNeedingAttention
 import lux.uno.anima.finance.model.Money
 import lux.uno.anima.finance.model.Subscription
 import lux.uno.anima.finance.model.UpcomingCharge
@@ -53,6 +55,7 @@ import lux.uno.anima.ui.components.AnimaCard
 import lux.uno.anima.ui.components.AnimaTopBar
 import lux.uno.anima.ui.components.ChoiceChip
 import lux.uno.anima.ui.components.EmptyState
+import lux.uno.anima.ui.components.GlyphTile
 import lux.uno.anima.ui.components.GhostButton
 import lux.uno.anima.ui.components.HorizontalScrollRow
 import lux.uno.anima.ui.components.IconAction
@@ -61,10 +64,14 @@ import lux.uno.anima.ui.components.PrimaryButton
 import lux.uno.anima.ui.components.ScreenSurface
 import lux.uno.anima.ui.components.SectionHeader
 import lux.uno.anima.ui.finance.components.SubscriptionRow
+import lux.uno.anima.ui.finance.components.color
+import lux.uno.anima.ui.finance.components.expiryStatus
 import lux.uno.anima.ui.icons.SubscriptionIcon
 import lux.uno.anima.ui.theme.AnimaIcons
 import lux.uno.anima.ui.theme.AnimaTheme
 import lux.uno.anima.ui.theme.EyebrowStyle
+import androidx.compose.runtime.saveable.rememberSaveable
+import lux.uno.anima.ui.components.enumSaver
 
 /** How the main list is ordered. Defaults to what bills next, which is what people ask first. */
 enum class SubscriptionSort(val label: String) {
@@ -85,7 +92,9 @@ fun FinanceHomeScreen(
     onLoadSample: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var sort by remember { mutableStateOf(SubscriptionSort.UPCOMING) }
+    var sort by rememberSaveable(stateSaver = enumSaver<SubscriptionSort>()) {
+        mutableStateOf(SubscriptionSort.UPCOMING)
+    }
 
     val overview = remember(data, today) {
         buildOverview(data.subscriptions, data.categories, today, data.settings.preferredCurrency)
@@ -102,6 +111,7 @@ fun FinanceHomeScreen(
         )
     }
     val paused = remember(data) { data.subscriptions.filterNot { it.isActive } }
+    val cardAlerts = remember(data, today) { data.paymentMethods.cardsNeedingAttention(today) }
 
     ScreenSurface(modifier) { contentModifier ->
         Box(contentModifier.safeDrawingPadding().fillMaxSize()) {
@@ -140,6 +150,14 @@ fun FinanceHomeScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     item { SummaryCard(overview.primaryTotal, overview.totals, overview.activeCount) }
+
+                    if (cardAlerts.isNotEmpty()) {
+                        item { Spacer(Modifier.height(6.dp)) }
+                        item { SectionHeader("Cards") }
+                        items(cardAlerts, key = { "card-${it.id}" }) { method ->
+                            CardExpiryCard(method, today, onOpenPaymentMethods)
+                        }
+                    }
 
                     if (overview.trialsEndingSoon.isNotEmpty()) {
                         item { Spacer(Modifier.height(6.dp)) }
@@ -254,6 +272,29 @@ private fun SummaryCard(
                     }
                 }
             }
+        }
+    }
+}
+
+/** An expiring or dead card, sitting with the trials because both are deadlines. */
+@Composable
+private fun CardExpiryCard(method: PaymentMethod, today: LocalDate, onClick: () -> Unit) {
+    val status = method.expiryStatus(today) ?: return
+    val accent = status.severity.color()
+
+    AnimaCard(onClick = onClick, contentPadding = PaddingValues(14.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            GlyphTile(method.kind.glyph, Color(method.colorArgb), size = 38.dp)
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(method.displayName, style = MaterialTheme.typography.titleSmall)
+                Text(status.full, style = MaterialTheme.typography.bodySmall, color = accent)
+            }
+            Text(
+                text = method.expiry?.label.orEmpty(),
+                style = MaterialTheme.typography.bodySmall,
+                color = AnimaTheme.palette.muted,
+            )
         }
     }
 }

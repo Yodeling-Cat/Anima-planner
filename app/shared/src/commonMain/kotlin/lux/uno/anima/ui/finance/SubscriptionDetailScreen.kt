@@ -67,6 +67,8 @@ import lux.uno.anima.ui.theme.EyebrowStyle
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
+import androidx.compose.runtime.saveable.rememberSaveable
+import lux.uno.anima.ui.components.LocalDateSaver
 
 @Composable
 fun SubscriptionDetailScreen(
@@ -87,8 +89,8 @@ fun SubscriptionDetailScreen(
     val category = data.categories.resolve(subscription.categoryId)
     val history = remember(subscription) { subscription.history }
 
-    var showPriceDialog by remember { mutableStateOf(false) }
-    var showDeleteDialog by remember { mutableStateOf(false) }
+    var showPriceDialog by rememberSaveable { mutableStateOf(false) }
+    var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
 
     ScreenSurface(modifier) { contentModifier ->
         Column(contentModifier.safeDrawingPadding().fillMaxSize()) {
@@ -446,9 +448,9 @@ private fun RecordPriceDialog(
     onDismiss: () -> Unit,
     onConfirm: (Money, LocalDate, String?) -> Unit,
 ) {
-    var amount by remember { mutableStateOf(formatAmountForInput(currentPrice)) }
-    var date by remember { mutableStateOf(today) }
-    var note by remember { mutableStateOf("") }
+    var amount by rememberSaveable { mutableStateOf(formatAmountForInput(currentPrice)) }
+    var date by rememberSaveable(stateSaver = LocalDateSaver) { mutableStateOf(today) }
+    var note by rememberSaveable { mutableStateOf("") }
 
     val parsed = amount.toAmountMinorOrNull()
 

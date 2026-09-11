@@ -34,9 +34,23 @@ kotlin {
             implementation(libs.kotlinx.serializationJson)
             api(libs.kotlinx.datetime)
             api(libs.okio)
+            // api, not implementation: the server's tests drive the real client against the
+            // real routes, so the HttpClient type has to reach them.
+            api(libs.ktor.clientCore)
+        }
+        androidMain.dependencies {
+            implementation(libs.ktor.clientOkhttp)
+        }
+        jvmMain.dependencies {
+            implementation(libs.ktor.clientOkhttp)
+        }
+        iosMain.dependencies {
+            implementation(libs.ktor.clientDarwin)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutinesTest)
+            implementation(libs.okio.fakeFileSystem)
         }
     }
 }

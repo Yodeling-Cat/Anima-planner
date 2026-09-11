@@ -105,6 +105,15 @@ object AnimaIcons {
         moveTo(7.5f, 4.5f); lineTo(19f, 12f); lineTo(7.5f, 19.5f); close()
     }
 
+    val Person = stroked("Person") {
+        // A head and the top of a pair of shoulders, drawn as arcs so it stays a line icon
+        // at the same weight as the rest.
+        moveTo(12f, 4.5f)
+        arcToRelative(3.6f, 3.6f, 0f, true, true, -0.01f, 0f)
+        moveTo(4.8f, 19.5f)
+        arcToRelative(7.2f, 7.2f, 0f, false, true, 14.4f, 0f)
+    }
+
     val Wallet = stroked("Wallet") {
         moveTo(3.5f, 7f); lineTo(3.5f, 18.5f); lineTo(20.5f, 18.5f); lineTo(20.5f, 9.5f); lineTo(3.5f, 9.5f)
         moveTo(3.5f, 7f); lineTo(16f, 5f); lineTo(16f, 9.5f)

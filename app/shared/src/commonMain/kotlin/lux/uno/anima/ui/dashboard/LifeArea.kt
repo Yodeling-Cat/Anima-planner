@@ -3,12 +3,14 @@ package lux.uno.anima.ui.dashboard
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.graphics.Color
+import kotlinx.serialization.Serializable
 import lux.uno.anima.ui.theme.AnimaTheme
 
 /**
  * The five doors on the home screen. Each area owns an accent that follows it into its
  * own section, so the app always says where you are without a label.
  */
+@Serializable
 enum class LifeArea(
     val title: String,
     val tagline: String,
