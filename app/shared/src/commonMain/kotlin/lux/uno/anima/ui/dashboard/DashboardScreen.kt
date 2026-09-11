@@ -56,7 +56,12 @@ data class FinanceGlance(
 fun DashboardScreen(
     glance: FinanceGlance,
     onOpen: (LifeArea) -> Unit,
-    onOpenAccount: () -> Unit,
+    /**
+     * Null where a rail is showing, which carries the account itself. Two doors onto one
+     * screen is one more than the screen needs, and the rail's is the one that is there
+     * from everywhere rather than only from here.
+     */
+    onOpenAccount: (() -> Unit)?,
     /** Null where the environment never syncs, so no dot is drawn at all. */
     syncDot: Color?,
     modifier: Modifier = Modifier,
@@ -72,7 +77,7 @@ fun DashboardScreen(
         ) {
             Row(verticalAlignment = Alignment.Top) {
                 Greeting(Modifier.weight(1f))
-                AccountDoor(syncDot = syncDot, onClick = onOpenAccount)
+                if (onOpenAccount != null) AccountDoor(syncDot = syncDot, onClick = onOpenAccount)
             }
             Spacer(Modifier.height(6.dp))
 

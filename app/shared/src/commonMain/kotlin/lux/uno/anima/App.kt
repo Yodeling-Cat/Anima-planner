@@ -410,7 +410,13 @@ private fun Anima(
                     when (screen) {
                         Screen.Dashboard -> DashboardScreen(
                             glance = glance,
-                            onOpenAccount = { navigator.go(Screen.Account) },
+                            // The rail carries the account where it is showing, so the
+                            // dashboard only offers its own door where there is no rail.
+                            onOpenAccount = if (windowClass.showsRail) {
+                                null
+                            } else {
+                                ({ navigator.go(Screen.Account) })
+                            },
                             syncDot = syncDotFor(environment, signedIn, syncStatus, pendingCount),
                             onOpen = { area ->
                                 navigator.go(
