@@ -48,7 +48,6 @@ import lux.uno.anima.ui.dev.DeveloperScreen
 import lux.uno.anima.ui.dev.EnvironmentBanner
 import lux.uno.anima.ui.dev.showsBanner
 import lux.uno.anima.finance.FinanceRepository
-import lux.uno.anima.finance.SampleData
 import lux.uno.anima.finance.model.buildOverview
 import lux.uno.anima.finance.model.cardsNeedingAttention
 import lux.uno.anima.finance.model.format
@@ -363,11 +362,6 @@ private fun Anima(
                             onAddSubscription = { navigator.go(Screen.SubscriptionEditor()) },
                             onOpenPaymentMethods = { navigator.go(Screen.PaymentMethods) },
                             onOpenCategories = { navigator.go(Screen.Categories) },
-                            onLoadSample = {
-                                repository.replaceAll(
-                                    SampleData.build(today, data.settings.preferredCurrency),
-                                )
-                            },
                         )
 
                         is Screen.SubscriptionDetail -> {

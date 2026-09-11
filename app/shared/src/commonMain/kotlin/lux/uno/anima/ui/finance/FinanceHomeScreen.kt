@@ -89,7 +89,6 @@ fun FinanceHomeScreen(
     onAddSubscription: () -> Unit,
     onOpenPaymentMethods: () -> Unit,
     onOpenCategories: () -> Unit,
-    onLoadSample: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var sort by rememberSaveable(stateSaver = enumSaver<SubscriptionSort>()) {
@@ -132,13 +131,7 @@ fun FinanceHomeScreen(
                         body = "Add the things that quietly bill you every month, and this screen "
                             + "starts telling you where the money goes.",
                         action = {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(10.dp),
-                            ) {
-                                PrimaryButton("Add a subscription", onAddSubscription, icon = AnimaIcons.Plus)
-                                GhostButton("Fill it with sample data", onLoadSample)
-                            }
+                            PrimaryButton("Add a subscription", onAddSubscription, icon = AnimaIcons.Plus)
                         },
                     )
                     return@Column

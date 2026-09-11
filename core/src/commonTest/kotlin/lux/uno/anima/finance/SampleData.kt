@@ -15,8 +15,16 @@ import lux.uno.anima.finance.model.Subscription
 import lux.uno.anima.finance.model.Trial
 
 /**
- * A furnished example dataset, offered from the empty state so the screens can be judged
- * with real shapes in them before any real data is typed. Never seeded automatically.
+ * A furnished dataset that touches every field of every record.
+ *
+ * It used to be offered from the empty state as "fill it with sample data", which was
+ * removed: a button that writes a dozen fabricated subscriptions into a real person's
+ * finances is one mis-tap from a mess they have to unpick by hand, and on a synced install
+ * that mess reaches their other devices before they notice.
+ *
+ * It lives in `commonTest` now so it cannot be shipped by accident. The breadth is what
+ * makes it worth keeping: a round trip through it is the widest serialization check there
+ * is, and narrowing it would quietly narrow that.
  */
 object SampleData {
 
