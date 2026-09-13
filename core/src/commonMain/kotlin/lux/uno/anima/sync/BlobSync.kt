@@ -48,11 +48,11 @@ class BlobSync(
                         // A refusal here means these bytes do not hash to this name, which is
                         // a bug on this side. Skip it rather than retrying it forever.
                         is ApiResult.Refused -> Unit
-                        else -> return put as ApiResult<Nothing>
+                        is ApiResult.Failure -> return put
                     }
                 }
 
-                else -> return missing as ApiResult<Nothing>
+                is ApiResult.Failure -> return missing
             }
         }
 
@@ -62,7 +62,7 @@ class BlobSync(
                 // Referenced but not on the server yet: the device that has it has not
                 // uploaded it. The next sync will find it.
                 is ApiResult.Refused -> Unit
-                else -> return fetched as ApiResult<Nothing>
+                is ApiResult.Failure -> return fetched
             }
         }
 

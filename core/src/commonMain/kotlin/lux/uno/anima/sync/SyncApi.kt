@@ -28,11 +28,21 @@ import kotlinx.serialization.json.Json
 sealed interface ApiResult<out T> {
     data class Ok<T>(val value: T) : ApiResult<T>
 
+    /**
+     * Every outcome that carries no value.
+     *
+     * Named as a group so a caller that only knows how to handle [Ok] can hand the failure
+     * straight back at whatever result type it owes its own caller. Without it each of those
+     * hand-backs is an unchecked cast to `ApiResult<Nothing>`, which is a compiler warning
+     * standing in for a fact the types already know.
+     */
+    sealed interface Failure : ApiResult<Nothing>
+
     /** The token is gone or expired. Never a reason to touch local data. */
-    data object Unauthorized : ApiResult<Nothing>
+    data object Unauthorized : Failure
 
     /** Nothing was reached. Offline, asleep, or the server is down — all the same here. */
-    data class Unreachable(val cause: Throwable) : ApiResult<Nothing>
+    data class Unreachable(val cause: Throwable) : Failure
 
     /**
      * Reached, and refused.
@@ -40,7 +50,7 @@ sealed interface ApiResult<out T> {
      * [detail] is the server's sentence for a person; [code] is what to branch on, and is
      * null from any older server or any refusal that has nothing to distinguish.
      */
-    data class Refused(val status: Int, val detail: String, val code: String? = null) : ApiResult<Nothing>
+    data class Refused(val status: Int, val detail: String, val code: String? = null) : Failure
 }
 
 @Serializable
@@ -156,7 +166,7 @@ class KtorSyncApi(private val client: HttpClient, private val baseUrl: String) :
             }
         ) {
             is ApiResult.Ok -> ApiResult.Ok(result.value.missing)
-            else -> result as ApiResult<Nothing>
+            is ApiResult.Failure -> result
         }
 
     override suspend fun putBlob(token: String, hash: String, bytes: ByteArray): ApiResult<Unit> =
