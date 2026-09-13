@@ -72,9 +72,7 @@ fun Money.format(withDecimals: Boolean = true): String {
         }
     }
 
-    val number = if (withDecimals && fraction != "00") "$grouped$decimalSeparator$fraction"
-    else if (withDecimals) "$grouped$decimalSeparator$fraction"
-    else grouped
+    val number = if (withDecimals) "$grouped$decimalSeparator$fraction" else grouped
 
     val symbol = currency?.symbol ?: this.currency
     val body = when {
@@ -96,8 +94,9 @@ fun Money.formatCompact(): String {
         value >= 100 -> value.roundToLong().toString()
         else -> value.roundTo(2)
     }
-    val signed = if (minor < 0) "−$short" else short
-    return if (currency == null || !currency.symbolLeads) "$signed\u00A0$symbol" else "$symbol$signed"
+    val body = if (currency == null || !currency.symbolLeads) "$short\u00A0$symbol" else "$symbol$short"
+    // The sign sits outside the symbol, as in `format`: a minus wedged between them reads as a typo.
+    return if (minor < 0) "−$body" else body
 }
 
 private fun Double.roundTo(decimals: Int): String {
