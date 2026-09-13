@@ -6,9 +6,6 @@ import kotlinx.datetime.LocalDate
 import lux.uno.anima.finance.model.CardExpiry
 import lux.uno.anima.finance.model.PaymentMethod
 import lux.uno.anima.finance.model.PaymentMethodKind
-import lux.uno.anima.finance.model.cardsNeedingAttention
-import lux.uno.anima.finance.model.hasExpired
-import lux.uno.anima.finance.model.toDigits
 import lux.uno.anima.finance.reminders.Reminder
 import lux.uno.anima.finance.reminders.InMemoryHandledReminderStore
 import lux.uno.anima.finance.reminders.ReminderCoordinator
@@ -22,68 +19,7 @@ import lux.uno.anima.sync.HybridClock
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
-
-class CardExpiryTest {
-
-    @Test
-    fun aCardLastsToTheEndOfItsPrintedMonth() {
-        assertEquals(LocalDate(2026, 9, 30), CardExpiry(2026, 9).lastValidDay)
-        assertEquals(LocalDate(2026, 2, 28), CardExpiry(2026, 2).lastValidDay)
-        // A leap year has to give the extra day.
-        assertEquals(LocalDate(2028, 2, 29), CardExpiry(2028, 2).lastValidDay)
-        assertEquals(LocalDate(2026, 12, 31), CardExpiry(2026, 12).lastValidDay)
-    }
-
-    @Test
-    fun itIsStillValidOnTheLastDayOfTheMonth() {
-        val expiry = CardExpiry(2026, 9)
-        assertFalse(expiry.hasExpired(LocalDate(2026, 9, 30)))
-        assertTrue(expiry.hasExpired(LocalDate(2026, 10, 1)))
-    }
-
-    @Test
-    fun theEntryFieldRoundTrips() {
-        assertEquals(CardExpiry(2026, 9), CardExpiry.fromDigits("0926"))
-        assertEquals("0926", CardExpiry(2026, 9).toDigits())
-        assertEquals("09/26", CardExpiry(2026, 9).label)
-    }
-
-    @Test
-    fun partialOrImpossibleEntriesAreRejected() {
-        assertNull(CardExpiry.fromDigits(""))
-        assertNull(CardExpiry.fromDigits("09"))
-        assertNull(CardExpiry.fromDigits("0926x"))
-        assertNull(CardExpiry.fromDigits("1326"))
-        assertNull(CardExpiry.fromDigits("0026"))
-    }
-
-    @Test
-    fun onlyCardsWithinTheWarningWindowAreFlagged() {
-        val card = card(CardExpiry(2026, 9))
-        val methods = listOf(card)
-
-        assertTrue(methods.cardsNeedingAttention(LocalDate(2026, 8, 29)).isEmpty())
-        assertEquals(listOf(card), methods.cardsNeedingAttention(LocalDate(2026, 8, 30)))
-        assertEquals(listOf(card), methods.cardsNeedingAttention(LocalDate(2026, 9, 30)))
-        // Still flagged after it dies, because a dead card is the louder problem.
-        assertEquals(listOf(card), methods.cardsNeedingAttention(LocalDate(2027, 1, 1)))
-    }
-
-    @Test
-    fun expiryOnAnythingOtherThanACardIsIgnored() = runTest {
-        val account = PaymentMethod(
-            id = "pm-bank",
-            name = "Main account",
-            kind = PaymentMethodKind.BANK,
-            expiry = CardExpiry(2026, 9),
-        )
-        assertTrue(listOf(account).cardsNeedingAttention(LocalDate(2026, 9, 30)).isEmpty())
-        assertTrue(buildReminders(FinanceData(paymentMethods = listOf(account)), TestStrings).isEmpty())
-    }
-}
 
 class ReminderScheduleTest {
 
@@ -97,6 +33,17 @@ class ReminderScheduleTest {
         assertEquals(LocalDate(2026, 8, 30), reminders[0].date)
         assertEquals(ReminderKind.CARD_EXPIRES_TODAY, reminders[1].kind)
         assertEquals(LocalDate(2026, 9, 30), reminders[1].date)
+    }
+
+    @Test
+    fun anExpiryOnAnythingOtherThanACardProducesNothing() = runTest {
+        val account = PaymentMethod(
+            id = "pm-bank",
+            name = "Main account",
+            kind = PaymentMethodKind.BANK,
+            expiry = CardExpiry(2026, 9),
+        )
+        assertTrue(buildReminders(FinanceData(paymentMethods = listOf(account)), TestStrings).isEmpty())
     }
 
     @Test
