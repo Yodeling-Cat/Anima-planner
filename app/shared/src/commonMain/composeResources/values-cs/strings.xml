@@ -439,4 +439,23 @@
     <string name="reminder_card_expiring_body">Po %1$s přestane fungovat. Objednejte si náhradu teď, aby nic, co platíte, neselhalo.</string>
     <string name="reminder_card_today_title">%1$s vyprší dnes</string>
     <string name="reminder_card_today_body">Dnes je poslední den, kdy funguje. Aktualizujte každé předplatné, které se z ní platí.</string>
+    <!-- Settings -->
+    <string name="settings_title">Nastavení</string>
+    <string name="settings_currencies">Měny</string>
+    <string name="settings_currencies_body">Při přidávání a úpravě předplatného se nabízejí jen zapnuté měny. Částky, které už jsou v nějaké měně zapsané, v ní zůstanou.</string>
+    <string name="settings_currencies_last">Alespoň jedna měna musí zůstat zapnutá.</string>
+    <string name="settings_currency">Preferovaná měna</string>
+    <string name="settings_currency_body">Souhrny, které spojují více předplatných, se zobrazují v této měně.</string>
+    <string name="settings_conversion">Přepočet</string>
+    <string name="settings_convert_all">Zobrazovat všechny částky v %1$s</string>
+    <string name="settings_convert_all_body">Ceny se přepočítávají jen pro zobrazení. Každé předplatné se stále účtuje ve své měně.</string>
+    <string name="settings_rates_from">Kurzy z Evropské centrální banky, %1$s.</string>
+    <string name="settings_rates_stale">Kurzovní službu se nepodařilo načíst. Používají se kurzy z %1$s.</string>
+    <string name="settings_rates_none">Zatím žádné kurzy. Částky zůstávají ve vlastních měnách, dokud nedorazí.</string>
+    <string name="settings_rates_unavailable">Toto prostředí zůstává v zařízení, takže se kurzy nestahují.</string>
+    <string name="settings_rates_refreshing">Načítají se kurzy…</string>
+    <string name="settings_rates_refresh">Obnovit kurzy</string>
+    <!-- a converted, and therefore approximate, amount -->
+    <string name="money_approximate">≈ %1$s</string>
+    <string name="finance_unconverted_note">%1$s není zahrnuto — chybí kurz</string>
 </resources>

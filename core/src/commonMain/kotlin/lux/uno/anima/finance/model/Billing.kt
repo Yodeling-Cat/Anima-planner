@@ -52,6 +52,7 @@ data class BillingCycle(
             BillingCycle(BillingPeriod.WEEK, 2),
             BillingCycle(BillingPeriod.MONTH, 6),
             BillingCycle(BillingPeriod.DAY, 1),
+            BillingCycle(BillingPeriod.YEAR, 5),
         )
     }
 }

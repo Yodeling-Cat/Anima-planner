@@ -57,6 +57,7 @@ import lux.uno.anima.dev.AppEnvironment
 import lux.uno.anima.dev.EnvironmentStore
 import lux.uno.anima.dev.createShakeDetector
 import lux.uno.anima.finance.FinanceRepository
+import lux.uno.anima.finance.availableCurrencies
 import lux.uno.anima.finance.model.buildOverview
 import lux.uno.anima.finance.model.cardsNeedingAttention
 import lux.uno.anima.finance.model.format
@@ -83,6 +84,13 @@ import lux.uno.anima.sync.SyncEngine
 import lux.uno.anima.sync.SyncState
 import lux.uno.anima.sync.SyncStatus
 import lux.uno.anima.sync.animaHttpClient
+import lux.uno.anima.finance.rates.FrankfurterRatesApi
+import lux.uno.anima.finance.rates.JsonFileRatesStore
+import lux.uno.anima.finance.rates.RatesRepository
+import lux.uno.anima.ui.settings.SettingsScreen
+import lux.uno.anima.ui.settings.SettingsState
+import lux.uno.anima.ui.text.LocalMoneyDisplay
+import lux.uno.anima.ui.text.MoneyDisplay
 import lux.uno.anima.sync.loadOrCreate
 import lux.uno.anima.ui.account.AccountScreen
 import lux.uno.anima.ui.account.AccountState
@@ -202,6 +210,26 @@ private fun Anima(
     // NotConfigured rather than treating it as a failure.
     val api = remember(http, environment.serverUrl) {
         environment.serverUrl?.let { KtorSyncApi(http, it) }
+    }
+
+    // Rates are a public table that says nothing about the person asking, so they are
+    // fetched straight from the device rather than through Anima's own server — which has
+    // no domain endpoints and is not about to gain one.
+    //
+    // Every environment fetches, the sandbox included. Its promise is that the data put into
+    // it never leaves the device, and this request carries none of it: the reply is the same
+    // table for everyone who asks, and what comes back is only ever read locally. A sandbox
+    // that could not convert would be a sandbox this feature could not be tried in.
+    val rates = remember(http, environment.id) {
+        RatesRepository(
+            api = FrankfurterRatesApi(http),
+            store = JsonFileRatesStore(fileName = environment.ratesFileName),
+        )
+    }
+    val ratesStatus by rates.status.collectAsStateWithLifecycle()
+    LaunchedEffect(rates) {
+        rates.start()
+        rates.keepWarm(this)
     }
     val events = remember(http, environment.serverUrl) {
         environment.serverUrl?.let { KtorSyncEvents(http, it) }
@@ -339,8 +367,14 @@ private fun Anima(
         reminders.run()
     }
 
-    val overview = remember(data, today) {
-        buildOverview(data.subscriptions, data.categories, today, data.settings.preferredCurrency)
+    val overview = remember(data, today, ratesStatus.rates) {
+        buildOverview(
+            data.subscriptions,
+            data.categories,
+            today,
+            data.settings.preferredCurrency,
+            ratesStatus.rates,
+        )
     }
     // Built outside the remember below because it reads strings, which only composition can do.
     val nextCharge = overview.upcoming.firstOrNull()?.let {
@@ -350,10 +384,17 @@ private fun Anima(
             relativeDayLabel(it.daysAway),
         )
     }
-    val glance = remember(data, today, overview, nextCharge) {
+    // Marked here rather than inside the glance because the marker is a string, and strings
+    // are only reachable from composition. A converted total is an estimate on the dashboard
+    // for exactly the same reason it is one on the finance card.
+    val monthlyTotal = overview.primaryTotal?.monthly?.format()?.let { amount ->
+        if (overview.isConverted) stringResource(Res.string.money_approximate, amount) else amount
+    }
+    val glance = remember(data, today, overview, nextCharge, monthlyTotal) {
         FinanceGlance(
-            monthlyTotal = overview.primaryTotal?.monthly?.format(),
-            subscriptionCount = overview.activeCount,
+            monthlyTotal = monthlyTotal,
+            // The headline currency's own count, to match the total shown beside it.
+            subscriptionCount = overview.primaryTotal?.subscriptionCount ?: 0,
             nextChargeLabel = nextCharge,
             alertCount = data.subscriptions.count { it.isActive && it.trialNeedsAttention(today) } +
                 data.paymentMethods.cardsNeedingAttention(today).size,
@@ -367,7 +408,21 @@ private fun Anima(
         if (loaded) runCatching { rootFocus.requestFocus() }
     }
 
-    CompositionLocalProvider(LocalIconImages provides iconImages) {
+    // What currency every amount below is drawn in. Provided once here rather than passed
+    // down: money appears on five screens and a dozen components, and a parameter on each of
+    // them is a parameter one of them will eventually be added without.
+    val moneyDisplay = remember(data.settings, ratesStatus.rates) {
+        MoneyDisplay(
+            preferredCurrency = data.settings.preferredCurrency,
+            convertAll = data.settings.convertAllAmounts,
+            rates = ratesStatus.rates,
+        )
+    }
+
+    CompositionLocalProvider(
+        LocalIconImages provides iconImages,
+        LocalMoneyDisplay provides moneyDisplay,
+    ) {
         BoxWithConstraints(
             Modifier
                 .fillMaxSize()
@@ -417,6 +472,11 @@ private fun Anima(
                                 null
                             } else {
                                 ({ navigator.go(Screen.Account) })
+                            },
+                            onOpenSettings = if (windowClass.showsRail) {
+                                null
+                            } else {
+                                ({ navigator.go(Screen.Settings) })
                             },
                             syncDot = syncDotFor(environment, signedIn, syncStatus, pendingCount),
                             onOpen = { area ->
@@ -515,7 +575,12 @@ private fun Anima(
                                     accountMessage = account.signIn(email, password).message()
                                     accountBusy = false
                                     // Signing in is the moment there is finally something to talk to.
-                                    if (accountMessage == null) engine.syncNow()
+                                    if (accountMessage == null) {
+                                        engine.syncNow()
+                                        // Nothing left to do on this screen once it worked,
+                                        // so land on the dashboard rather than on settings.
+                                        navigator.switchTo(Screen.Dashboard)
+                                    }
                                 }
                             },
                             onRegister = { email, password ->
@@ -546,6 +611,22 @@ private fun Anima(
                                 }
                             },
                             onSyncNow = { scope.launch { engine.syncNow() } },
+                            onBack = sectionBack,
+                        )
+
+                        Screen.Settings -> SettingsScreen(
+                            state = SettingsState(
+                                preferredCurrency = data.settings.preferredCurrency,
+                                convertAllAmounts = data.settings.convertAllAmounts,
+                                enabledCurrencies = data.settings.availableCurrencies,
+                                rates = ratesStatus,
+                            ),
+                            onPreferredCurrency = { repository.setPreferredCurrency(it) },
+                            onCurrencyEnabled = { code, enabled ->
+                                repository.setCurrencyEnabled(code, enabled)
+                            },
+                            onConvertAllAmounts = { repository.setConvertAllAmounts(it) },
+                            onRefreshRates = { scope.launch { rates.refreshNow() } },
                             onBack = sectionBack,
                         )
 
@@ -590,6 +671,7 @@ private fun Anima(
                                 )
                             },
                             onOpenAccount = { navigator.switchTo(Screen.Account) },
+                            onOpenSettings = { navigator.switchTo(Screen.Settings) },
                             syncDot = syncDotFor(environment, signedIn, syncStatus, pendingCount),
                         )
                     }

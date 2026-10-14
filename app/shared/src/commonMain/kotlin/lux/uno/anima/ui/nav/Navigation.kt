@@ -33,6 +33,7 @@ sealed interface Screen {
     @Serializable data object PaymentMethods : Screen
     @Serializable data object Categories : Screen
     @Serializable data object Account : Screen
+    @Serializable data object Settings : Screen
     @Serializable data class ComingSoon(val area: LifeArea) : Screen
 }
 
@@ -137,7 +138,7 @@ val Screen.area: LifeArea?
         -> LifeArea.FINANCE
 
         is Screen.ComingSoon -> this.area
-        Screen.Dashboard, Screen.Account -> null
+        Screen.Dashboard, Screen.Account, Screen.Settings -> null
     }
 
 /**

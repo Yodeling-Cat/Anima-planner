@@ -2,6 +2,7 @@ package lux.uno.anima.finance
 
 import kotlinx.serialization.Serializable
 import lux.uno.anima.finance.model.Category
+import lux.uno.anima.finance.model.Currency
 import lux.uno.anima.sync.Hlc
 import lux.uno.anima.sync.HybridClock
 import lux.uno.anima.sync.RecordKind
@@ -23,7 +24,59 @@ const val STABLE_NODE_SCHEMA_VERSION: Int = 5
 @Serializable
 data class FinanceSettings(
     val preferredCurrency: String = "USD",
+    /**
+     * Whether every amount in the app is shown converted into [preferredCurrency], rather
+     * than only the totals that have to combine currencies to exist at all.
+     *
+     * Off by default: what a subscription costs is what the card is charged, and a figure
+     * that quietly became an estimate is worse than one in an unfamiliar currency. The
+     * editor never converts either way — see `MoneyDisplay`.
+     */
+    val convertAllAmounts: Boolean = false,
+    /**
+     * Which currencies the pickers offer, or null while nobody has narrowed the list.
+     *
+     * Null rather than all thirteen codes, so a currency added to [Currency] in a later
+     * version shows up for someone who never opened this setting, instead of being hidden
+     * for good by a list written before it existed.
+     *
+     * Only the pickers read this. An amount already recorded in a currency that was later
+     * switched off is still shown in it — turning one off says "stop offering me this", not
+     * "reinterpret what I already own".
+     */
+    val enabledCurrencies: Set<String>? = null,
 )
+
+/**
+ * The currencies to offer, in [Currency] order.
+ *
+ * An empty set falls back to all of them. It should not happen — [withCurrencyEnabled]
+ * refuses to switch the last one off — but a dataset can arrive from a device running
+ * another version, and a picker with nothing in it is not a state the UI can be left in.
+ */
+val FinanceSettings.availableCurrencies: List<Currency>
+    get() {
+        val codes = enabledCurrencies ?: return Currency.entries
+        return Currency.entries.filter { it.code in codes }.ifEmpty { Currency.entries }
+    }
+
+/**
+ * Switches one currency on or off, keeping [FinanceSettings.preferredCurrency] on something
+ * that is still offered.
+ *
+ * Returns the settings unchanged when this would empty the list: totals have to be expressed
+ * in something, and a picker with no options is a dead end rather than a choice.
+ */
+fun FinanceSettings.withCurrencyEnabled(code: String, enabled: Boolean): FinanceSettings {
+    val current = availableCurrencies.map { it.code }.toSet()
+    val next = if (enabled) current + code else current - code
+    if (next.isEmpty() || next == current) return this
+    return copy(
+        enabledCurrencies = next,
+        preferredCurrency = if (preferredCurrency in next) preferredCurrency
+        else Currency.entries.first { it.code in next }.code,
+    )
+}
 
 /** What sync needs to know about one record: when it last changed, and whether it still exists. */
 @Serializable

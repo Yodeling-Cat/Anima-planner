@@ -62,6 +62,8 @@ fun DashboardScreen(
      * from everywhere rather than only from here.
      */
     onOpenAccount: (() -> Unit)?,
+    /** Null for the same reason as [onOpenAccount]: the rail already carries settings. */
+    onOpenSettings: (() -> Unit)?,
     /** Always drawn — see `syncDotFor`, which decides what colour it is saying. */
     syncDot: Color,
     modifier: Modifier = Modifier,
@@ -78,6 +80,13 @@ fun DashboardScreen(
             Row(verticalAlignment = Alignment.Top) {
                 Greeting(Modifier.weight(1f))
                 if (onOpenAccount != null) AccountDoor(syncDot = syncDot, onClick = onOpenAccount)
+                if (onOpenSettings != null) {
+                    IconAction(
+                        AnimaIcons.Gear,
+                        stringResource(Res.string.settings_title),
+                        onOpenSettings,
+                    )
+                }
             }
             Spacer(Modifier.height(6.dp))
 

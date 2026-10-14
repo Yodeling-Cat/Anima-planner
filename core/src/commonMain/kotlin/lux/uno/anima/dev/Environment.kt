@@ -45,6 +45,7 @@ data class AppEnvironment(
     val iconFolderName: String get() = "icons$storageSuffix"
     val syncStateFileName: String get() = "sync-state$storageSuffix.json"
     val handledRemindersFileName: String get() = "handled-reminders$storageSuffix.json"
+    val ratesFileName: String get() = "rates$storageSuffix.json"
 
     /** Keeps one environment's session out of another's. */
     val sessionTokenKey: String get() = "session-token$storageSuffix"

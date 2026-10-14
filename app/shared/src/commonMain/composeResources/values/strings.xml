@@ -463,4 +463,23 @@
     <string name="reminder_card_expiring_body">It stops working after %1$s. Order the replacement now so nothing you pay for fails.</string>
     <string name="reminder_card_today_title">%1$s expires today</string>
     <string name="reminder_card_today_body">Today is the last day it works. Update every subscription charged to it.</string>
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_currencies">Currencies</string>
+    <string name="settings_currencies_body">Only the currencies you turn on are offered when adding or editing a subscription. Amounts already recorded in a currency stay in it.</string>
+    <string name="settings_currencies_last">At least one currency has to stay on.</string>
+    <string name="settings_currency">Preferred currency</string>
+    <string name="settings_currency_body">Totals that combine subscriptions are shown in this currency.</string>
+    <string name="settings_conversion">Conversion</string>
+    <string name="settings_convert_all">Show every amount in %1$s</string>
+    <string name="settings_convert_all_body">Prices are converted for display. Each subscription is still billed in its own currency.</string>
+    <string name="settings_rates_from">Rates from the European Central Bank, %1$s.</string>
+    <string name="settings_rates_stale">Could not reach the rate service. Still using rates from %1$s.</string>
+    <string name="settings_rates_none">No rates yet. Amounts stay in their own currencies until they arrive.</string>
+    <string name="settings_rates_unavailable">This environment stays on the device, so no rates are fetched.</string>
+    <string name="settings_rates_refreshing">Fetching rates…</string>
+    <string name="settings_rates_refresh">Refresh rates</string>
+    <!-- a converted, and therefore approximate, amount -->
+    <string name="money_approximate">≈ %1$s</string>
+    <string name="finance_unconverted_note">%1$s not included — no rate available</string>
 </resources>

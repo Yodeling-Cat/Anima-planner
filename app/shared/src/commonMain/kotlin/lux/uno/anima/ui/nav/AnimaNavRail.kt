@@ -62,6 +62,7 @@ fun AnimaNavRail(
     onHome: () -> Unit,
     onOpenArea: (LifeArea) -> Unit,
     onOpenAccount: () -> Unit,
+    onOpenSettings: () -> Unit,
     /** The same dot the dashboard shows, so sync state is visible from every screen. */
     syncDot: Color,
     modifier: Modifier = Modifier,
@@ -107,6 +108,14 @@ fun AnimaNavRail(
         }
 
         Spacer(Modifier.weight(1f))
+
+        RailItem(
+            label = stringResource(Res.string.settings_title),
+            selected = current == Screen.Settings,
+            accent = MaterialTheme.colorScheme.onSurface,
+            onClick = onOpenSettings,
+            icon = AnimaIcons.Gear,
+        )
 
         RailItem(
             label = stringResource(Res.string.dashboard_account),

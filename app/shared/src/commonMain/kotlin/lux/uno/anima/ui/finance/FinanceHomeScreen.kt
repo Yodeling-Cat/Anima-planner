@@ -37,7 +37,7 @@ import androidx.compose.foundation.clickable
 import kotlinx.datetime.LocalDate
 import lux.uno.anima.finance.FinanceData
 import lux.uno.anima.finance.model.BillingPeriod
-import lux.uno.anima.finance.model.CurrencyTotal
+import lux.uno.anima.finance.model.FinanceOverview
 import lux.uno.anima.finance.model.PaymentMethod
 import lux.uno.anima.finance.model.cardsNeedingAttention
 import lux.uno.anima.finance.model.Money
@@ -56,9 +56,7 @@ import lux.uno.anima.ui.components.ChoiceChip
 import lux.uno.anima.ui.components.EmptyState
 import lux.uno.anima.ui.components.GlyphTile
 import lux.uno.anima.ui.components.GhostButton
-import lux.uno.anima.ui.components.HorizontalScrollRow
 import lux.uno.anima.ui.components.IconAction
-import lux.uno.anima.ui.components.Pill
 import lux.uno.anima.ui.components.PrimaryButton
 import lux.uno.anima.ui.components.ScreenSurface
 import lux.uno.anima.ui.components.SectionHeader
@@ -66,8 +64,10 @@ import lux.uno.anima.ui.finance.components.SubscriptionRow
 import lux.uno.anima.ui.finance.components.color
 import lux.uno.anima.ui.finance.components.expiryStatus
 import lux.uno.anima.ui.icons.SubscriptionIcon
+import lux.uno.anima.ui.text.LocalMoneyDisplay
 import lux.uno.anima.ui.text.displayLabel
 import lux.uno.anima.ui.text.formatShort
+import lux.uno.anima.ui.text.shown
 import lux.uno.anima.ui.text.relativeDayLabel
 import lux.uno.anima.ui.text.shortSuffix
 import lux.uno.anima.ui.theme.AnimaIcons
@@ -108,8 +108,19 @@ fun FinanceHomeScreen(
         mutableStateOf(SubscriptionSort.UPCOMING)
     }
 
-    val overview = remember(data, today) {
-        buildOverview(data.subscriptions, data.categories, today, data.settings.preferredCurrency)
+    // The same table the rest of the screen's amounts are drawn with. Read from composition
+    // rather than taken as a parameter for the reason MoneyDisplay itself is: a screen that
+    // has to be handed the rates is a screen that will one day be added without them, and
+    // an overview built without them silently reports every currency as unconvertible.
+    val rates = LocalMoneyDisplay.current.rates
+    val overview = remember(data, today, rates) {
+        buildOverview(
+            data.subscriptions,
+            data.categories,
+            today,
+            data.settings.preferredCurrency,
+            rates,
+        )
     }
     val methodsById = remember(data) { data.paymentMethods.associateBy { it.id } }
 
@@ -166,7 +177,7 @@ fun FinanceHomeScreen(
                     contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 110.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    item { SummaryCard(overview.primaryTotal, overview.totals, overview.activeCount) }
+                    item { SummaryCard(overview) }
 
                     if (cardAlerts.isNotEmpty()) {
                         item { Spacer(Modifier.height(6.dp)) }
@@ -257,13 +268,20 @@ fun FinanceHomeScreen(
     }
 }
 
-/** The monthly figure is only interesting next to the yearly one, so both are always shown. */
+/**
+ * The monthly figure is only interesting next to the yearly one, so both are always shown.
+ *
+ * One currency, always. Where subscriptions are billed in several, they are folded into the
+ * preferred one and the card says so — a row of per-currency chips left the reader to add up
+ * three numbers in their head, which is the arithmetic this card exists to do for them.
+ */
 @Composable
-private fun SummaryCard(
-    primary: CurrencyTotal?,
-    all: List<CurrencyTotal>,
-    activeCount: Int,
-) {
+private fun SummaryCard(overview: FinanceOverview) {
+    val primary = overview.primaryTotal
+    // The headline currency's own count, not every active subscription: the ones in a
+    // currency the total could not reach are not part of the amount above it.
+    val activeCount = primary?.subscriptionCount ?: 0
+
     AnimaCard(contentPadding = PaddingValues(20.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(
@@ -291,16 +309,18 @@ private fun SummaryCard(
                 color = AnimaTheme.palette.muted,
             )
 
-            val others = all.filter { it.currency != primary?.currency }
-            if (others.isNotEmpty()) {
-                HorizontalScrollRow {
-                    others.forEach { total ->
-                        Pill(
-                            stringResource(Res.string.finance_monthly_pill, total.monthly.format()),
-                            accent = AnimaTheme.palette.muted,
-                        )
-                    }
-                }
+            // Spend the total could not reach. Said plainly rather than left out, because a
+            // month's outflow quietly missing a subscription is the one error here nobody
+            // would catch by looking.
+            if (overview.unconvertedCurrencies.isNotEmpty()) {
+                Text(
+                    stringResource(
+                        Res.string.finance_unconverted_note,
+                        overview.unconvertedCurrencies.joinToString(", "),
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = AnimaTheme.palette.warning,
+                )
             }
         }
     }
@@ -357,7 +377,7 @@ private fun TrialCard(subscription: Subscription, today: LocalDate, onClick: () 
             Text(
                 text = stringResource(
                     Res.string.finance_then_price,
-                    subscription.currentPrice(today).format(),
+                    subscription.currentPrice(today).shown(),
                     subscription.cycle.shortSuffix(),
                 ),
                 style = MaterialTheme.typography.bodySmall,
@@ -396,7 +416,7 @@ private fun UpcomingRow(charge: UpcomingCharge, today: LocalDate, onClick: () ->
         )
         Spacer(Modifier.width(12.dp))
         Text(
-            text = charge.amount.format(),
+            text = charge.amount.shown(),
             style = MaterialTheme.typography.titleSmall,
         )
     }

@@ -34,6 +34,7 @@ class EnvironmentStoreTest {
                 it.iconFolderName,
                 it.syncStateFileName,
                 it.handledRemindersFileName,
+                it.ratesFileName,
                 it.sessionTokenKey,
             )
         }

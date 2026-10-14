@@ -36,6 +36,7 @@ import kotlinx.datetime.plus
 import lux.uno.anima.finance.FinanceData
 import lux.uno.anima.finance.model.BillingCycle
 import lux.uno.anima.finance.model.Category
+import lux.uno.anima.finance.availableCurrencies
 import lux.uno.anima.finance.model.Currency
 import lux.uno.anima.finance.model.IconRef
 import lux.uno.anima.finance.model.Money
@@ -105,6 +106,16 @@ fun SubscriptionEditorScreen(
     var currency by rememberSaveable {
         mutableStateOf(existing?.currency ?: data.settings.preferredCurrency)
     }
+    // The currencies settings offers, plus whatever this subscription is already in. A
+    // currency switched off after the fact still has to be a choice here, or reopening an
+    // old subscription would silently move it onto another one at the next save.
+    val currencyOptions = remember(data.settings, currency) {
+        val offered = data.settings.availableCurrencies
+        val held = Currency.fromCode(currency)
+        if (held == null || held in offered) offered
+        else Currency.entries.filter { it in offered || it == held }
+    }
+
     var cycle by rememberSaveable(stateSaver = BillingCycleSaver) {
         mutableStateOf(existing?.cycle ?: BillingCycle.Monthly)
     }
@@ -213,7 +224,7 @@ fun SubscriptionEditorScreen(
                         prefix = Currency.fromCode(currency)?.symbol ?: currency,
                     )
                     HorizontalScrollRow {
-                        Currency.entries.forEach { option ->
+                        currencyOptions.forEach { option ->
                             ChoiceChip(
                                 label = option.code,
                                 selected = currency == option.code,

@@ -119,6 +119,21 @@ object AnimaIcons {
         moveTo(5.5f, 9f); lineTo(5.5f, 20f); lineTo(18.5f, 20f); lineTo(18.5f, 9f)
     }
 
+    val Gear = stroked("Gear") {
+        // Eight teeth around a hub. Drawn as one closed polyline rather than as a ring plus
+        // separate teeth, so it strokes at the same weight as everything else in the set.
+        moveTo(21.1f, 10.7f); lineTo(21.1f, 13.3f); lineTo(18.4f, 13.6f); lineTo(17.7f, 15.4f)
+        lineTo(19.4f, 17.5f); lineTo(17.5f, 19.4f); lineTo(15.4f, 17.7f); lineTo(13.6f, 18.4f)
+        lineTo(13.3f, 21.1f); lineTo(10.7f, 21.1f); lineTo(10.4f, 18.4f); lineTo(8.6f, 17.7f)
+        lineTo(6.5f, 19.4f); lineTo(4.6f, 17.5f); lineTo(6.3f, 15.4f); lineTo(5.6f, 13.6f)
+        lineTo(2.9f, 13.3f); lineTo(2.9f, 10.7f); lineTo(5.6f, 10.4f); lineTo(6.3f, 8.6f)
+        lineTo(4.6f, 6.5f); lineTo(6.5f, 4.6f); lineTo(8.6f, 6.3f); lineTo(10.4f, 5.6f)
+        lineTo(10.7f, 2.9f); lineTo(13.3f, 2.9f); lineTo(13.6f, 5.6f); lineTo(15.4f, 6.3f)
+        lineTo(17.5f, 4.6f); lineTo(19.4f, 6.5f); lineTo(17.7f, 8.6f); lineTo(18.4f, 10.4f)
+        close()
+        circle(12f, 12f, 3.1f)
+    }
+
     val Wallet = stroked("Wallet") {
         moveTo(3.5f, 7f); lineTo(3.5f, 18.5f); lineTo(20.5f, 18.5f); lineTo(20.5f, 9.5f); lineTo(3.5f, 9.5f)
         moveTo(3.5f, 7f); lineTo(16f, 5f); lineTo(16f, 9.5f)

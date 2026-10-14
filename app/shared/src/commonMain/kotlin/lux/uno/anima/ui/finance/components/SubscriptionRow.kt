@@ -33,6 +33,8 @@ import lux.uno.anima.ui.icons.SubscriptionIcon
 import lux.uno.anima.ui.text.formatShort
 import lux.uno.anima.ui.text.relativeDayLabel
 import lux.uno.anima.ui.text.shortSuffix
+import lux.uno.anima.ui.text.shown
+import lux.uno.anima.ui.text.shownBare
 import lux.uno.anima.ui.theme.AnimaTheme
 import org.jetbrains.compose.resources.stringResource
 
@@ -121,7 +123,7 @@ fun SubscriptionRow(
             Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Row(verticalAlignment = Alignment.Bottom) {
                     Text(
-                        text = subscription.currentPrice(today).format(),
+                        text = subscription.currentPrice(today).shown(),
                         style = MaterialTheme.typography.titleSmall,
                     )
                     Text(
@@ -135,7 +137,7 @@ fun SubscriptionRow(
                     Text(
                         text = stringResource(
                             Res.string.sub_monthly_equivalent,
-                            monthlyEquivalent.format(),
+                            monthlyEquivalent.shownBare(),
                         ),
                         style = MaterialTheme.typography.bodySmall,
                         color = AnimaTheme.palette.faint,

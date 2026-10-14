@@ -205,6 +205,20 @@ class FinanceRepository(
         current.copy(settings = current.settings.copy(preferredCurrency = currency))
     }
 
+    fun setConvertAllAmounts(enabled: Boolean) = mutate { current ->
+        current.copy(settings = current.settings.copy(convertAllAmounts = enabled))
+    }
+
+    /**
+     * Adds or removes a currency from the ones the pickers offer.
+     *
+     * Switching off the preferred currency moves the preference to another one that is still
+     * offered rather than refusing — see [withCurrencyEnabled].
+     */
+    fun setCurrencyEnabled(code: String, enabled: Boolean) = mutate { current ->
+        current.copy(settings = current.settings.withCurrencyEnabled(code, enabled))
+    }
+
     /**
      * Folds records from the server in.
      *

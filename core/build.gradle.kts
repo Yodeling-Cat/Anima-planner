@@ -51,6 +51,9 @@ kotlin {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutinesTest)
             implementation(libs.okio.fakeFileSystem)
+            // Lets the rates client be driven against a canned response, so the one contract
+            // this app has with an outside service is pinned without a network.
+            implementation(libs.ktor.clientMock)
         }
     }
 }

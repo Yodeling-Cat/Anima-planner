@@ -439,4 +439,23 @@
     <string name="reminder_card_expiring_body">Po %1$s prestane fungovať. Objednajte si náhradu teraz, aby nič, čo platíte, nezlyhalo.</string>
     <string name="reminder_card_today_title">%1$s expiruje dnes</string>
     <string name="reminder_card_today_body">Dnes je posledný deň, keď funguje. Aktualizujte každé predplatné, ktoré sa z nej platí.</string>
+    <!-- Settings -->
+    <string name="settings_title">Nastavenia</string>
+    <string name="settings_currencies">Meny</string>
+    <string name="settings_currencies_body">Pri pridávaní a úprave predplatného sa ponúkajú len zapnuté meny. Sumy, ktoré už sú v nejakej mene zapísané, v nej zostanú.</string>
+    <string name="settings_currencies_last">Aspoň jedna mena musí zostať zapnutá.</string>
+    <string name="settings_currency">Preferovaná mena</string>
+    <string name="settings_currency_body">Súhrny, ktoré spájajú viac predplatných, sa zobrazujú v tejto mene.</string>
+    <string name="settings_conversion">Prepočet</string>
+    <string name="settings_convert_all">Zobrazovať všetky sumy v %1$s</string>
+    <string name="settings_convert_all_body">Ceny sa prepočítavajú len pre zobrazenie. Každé predplatné sa naďalej účtuje vo svojej mene.</string>
+    <string name="settings_rates_from">Kurzy z Európskej centrálnej banky, %1$s.</string>
+    <string name="settings_rates_stale">Kurzovú službu sa nepodarilo načítať. Používajú sa kurzy z %1$s.</string>
+    <string name="settings_rates_none">Zatiaľ žiadne kurzy. Sumy zostávajú vo vlastných menách, kým neprídu.</string>
+    <string name="settings_rates_unavailable">Toto prostredie zostáva v zariadení, takže kurzy sa nesťahujú.</string>
+    <string name="settings_rates_refreshing">Načítavajú sa kurzy…</string>
+    <string name="settings_rates_refresh">Obnoviť kurzy</string>
+    <!-- a converted, and therefore approximate, amount -->
+    <string name="money_approximate">≈ %1$s</string>
+    <string name="finance_unconverted_note">%1$s nie je zahrnuté — chýba kurz</string>
 </resources>

@@ -79,6 +79,39 @@ Treat this as a privacy-focused app. Hold only what the job requires:
 4. **New endpoints are a decision, not a detail.** Any route that reads inside a
    payload needs an explicit reason recorded here.
 
+## Conversion rates
+
+The one call Anima makes to anyone but its own server. Amounts are stored and billed in the
+currency each subscription is actually charged in; a **preferred currency** in settings
+decides what the totals are expressed in, and a second setting converts every displayed
+amount into it.
+
+- **Fetched by the device, never by our server.** A rate table is public and says nothing
+  about the person asking, so routing it through `/sync` would buy no privacy and would give
+  the server a domain endpoint — see *Compute on the device* above.
+- **European Central Bank reference rates, by way of Frankfurter.** No API key and no
+  signup, which is the only kind of provider a self-hoster who never reads the docs can be
+  given by default. `RatesApi` is an interface so that endpoint can be swapped.
+- **Quoted against the euro** (`RATES_BASE`), not against the user's preference, so changing
+  the preference is a local recalculation rather than a network call.
+- **Cached in `rates<suffix>.json`, and device-local.** Never synced: it is a cache of a
+  public table every device can refill for itself, and syncing it would put an hourly churn
+  into a dataset that should only change when a person changes something.
+- **Fetched on launch and hourly, skipped while fresh** (six hours). The source publishes
+  once per working day; the tick is there to catch that publication and to cover an app left
+  open for days, not to chase a rate that does not move.
+- **A failed fetch never clears the table it holds.** Yesterday's rate is a usable answer
+  offline and no rate is not.
+- **Every environment fetches, the sandbox included.** This is the one request the sandbox
+  makes, and it stays inside its promise: the call carries nothing about the user, the reply
+  is the same table for everyone who asks, and it is read only on the device. A sandbox that
+  could not convert would be one this feature could not be tried in. The cached table is
+  still suffixed per environment like everything else.
+- **Converted figures are marked** with a `≈`, and a total that could not reach some
+  currency says which. A month's outflow quietly missing a subscription is the one error
+  here that nobody would catch by looking. The editor never converts: a price round-tripped
+  through a daily rate would drift every time the form was opened.
+
 ## Sync model
 
 Per-record last-write-wins. Single user, so the newest write is always the one the

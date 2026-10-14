@@ -65,6 +65,7 @@ import lux.uno.anima.ui.text.formatShort
 import lux.uno.anima.ui.text.label
 import lux.uno.anima.ui.text.relativeDayLabel
 import lux.uno.anima.ui.text.shortSuffix
+import lux.uno.anima.ui.text.shown
 import lux.uno.anima.ui.theme.AnimaIcons
 import lux.uno.anima.ui.theme.AnimaTheme
 import lux.uno.anima.ui.theme.EyebrowStyle
@@ -299,7 +300,7 @@ private fun HeaderCard(
             }
 
             Row(verticalAlignment = Alignment.Bottom) {
-                Text(price.format(), style = MaterialTheme.typography.displaySmall)
+                Text(price.shown(), style = MaterialTheme.typography.displaySmall)
                 Text(
                     text = subscription.cycle.shortSuffix(),
                     style = MaterialTheme.typography.titleMedium,
@@ -310,12 +311,12 @@ private fun HeaderCard(
 
             Text(
                 text = if (isMonthly) {
-                    stringResource(Res.string.detail_yearly, subscription.yearlyCost(today).format())
+                    stringResource(Res.string.detail_yearly, subscription.yearlyCost(today).shown())
                 } else {
                     stringResource(
                         Res.string.detail_monthly_and_yearly,
-                        subscription.monthlyCost(today).format(),
-                        subscription.yearlyCost(today).format(),
+                        subscription.monthlyCost(today).shown(),
+                        subscription.yearlyCost(today).shown(),
                     )
                 },
                 style = MaterialTheme.typography.bodyMedium,
@@ -463,7 +464,7 @@ private fun TrialPanel(subscription: Subscription, today: LocalDate, onEndTrial:
                     Res.plurals.detail_trial_reminder,
                     trial.remindDaysBefore,
                     trial.remindDaysBefore,
-                    subscription.currentPrice(today).format(),
+                    subscription.currentPrice(today).shown(),
                     subscription.cycle.shortSuffix(),
                 ),
                 style = MaterialTheme.typography.bodySmall,
